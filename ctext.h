@@ -28,7 +28,7 @@ struct ctext_config
   // This specifies how many lines are kept
   // in the ring-buffer.  
   //
-  int8_t m_scrollback;
+  size_t m_scrollback;
 #define CTEXT_DEFAULT_SCROLLBACK 100
 
   //
