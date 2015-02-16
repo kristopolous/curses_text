@@ -188,8 +188,8 @@ class ctext
     int8_t get_offset(size_t*x, size_t*y); 
 
     // 
-    // get_size returns the outer text bounds legth (x) and height
-    // (x) of the current buffer.
+    // get_size returns the outer text bounds length (x) and height
+    // (y) of the current buffer.
     //
     // More technically speaking, this means the longest row of 
     // content in the buffer for x and the number of rows of content
