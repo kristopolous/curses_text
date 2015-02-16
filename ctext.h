@@ -7,6 +7,13 @@
 
 using namespace std;
 
+typedef vector<wstring> ctext_buffer;
+
+enum ctext_event {
+  SCROLL,
+  CLEAR,
+  DATA
+};
 
 struct ctext_config 
 {
@@ -95,6 +102,22 @@ struct ctext_config
   //
   bool m_scroll_on_append;
 #define CTEXT_DEFAULT_APPEND_TOP false
+
+  //
+  // The following function pointer, if defined
+  // is executed when an event happens as defined
+  // in the ctext_event enum above.
+  //
+  // If the pointer is not set, then no callback
+  // is called.
+  //
+  // No meta-data travels with the event other than
+  // the callers context and the nature of the event.
+  //
+  // The context can be queried based on the event
+  //
+  int8_t *(*m_on_event)(ctext *context, ctext_event event);
+#define CTEXT_DEFAULT_ON_EVENT 0
 };
 
 class ctext 
@@ -102,7 +125,32 @@ class ctext
   public:
     ctext(WINDOW *win = 0, ctext_config *config = 0);
 
-    // These 
+    //
+    // A ctext istance has a configuration specified through
+    // the ctext_config structure above
+    //
+    // When this function is called, a copy of the structure
+    // is made so that further modifications are not reflected
+    // in a previously instantiated instance.
+    //
+    int8_t set_config(struct ctext_config *config);
+
+    //
+    // get_config allows you to change a parameter in the 
+    // configuration of a ctext instance and to duplicate
+    // an existing configuration in a new instance.
+    //
+    int8_t get_config(struct ctext_config *config);
+
+    // 
+    // At most 1 curses window may be attached at a time.
+    //
+    // This function specifies the curses window which 
+    // will be attached given this instance.
+    //
+    // If one is already attached, it will be detached and
+    // potentially orphaned.
+    //
     int8_t attach_curses_window(WINDOW *win);
 
     //
@@ -115,7 +163,7 @@ class ctext
     // amount units of the oldest content.
     //
     // The return code is how many rows were cleared from the 
-    // buffer
+    // buffer.
     //
     size_t clear(size_t amount);
 
@@ -182,10 +230,9 @@ class ctext
 
     WINDOW *m_win;
     ctext_config *m_config;
-
-    vector<wstring> m_buffer;
+    ctext_buffer m_buffer;
 };
 
-int cprintf(Ctext*win, const char *format, ...);
+int cprintf(ctext*win, const char *format, ...);
 
 #endif
