@@ -240,6 +240,10 @@ class ctext
 
     size_t m_max_x;
     size_t m_max_y;
+
+    void get_win_size();
+    size_t m_win_width;
+    size_t m_win_height;
 };
 
 int cprintf(ctext*win, const char *format, ...);

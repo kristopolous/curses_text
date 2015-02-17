@@ -60,6 +60,12 @@ size_t ctext::clear(size_t amount = 0)
   {
     this->m_buffer.erase(this->m_buffer.begin(), this->m_buffer.begin() + amount);
   }
+
+  if (this->m_config.m_on_event)
+  {
+    this->m_config.m_on_event(this, ctext_event::CLEAR);
+  }
+
   return this->render();
 }
 
@@ -75,6 +81,12 @@ int8_t ctext::direct_scroll(size_t x, size_t y)
 
   this->m_pos_x = x;
   this->m_pos_y = y;
+
+  if (this->m_config.m_on_event)
+  {
+    this->m_config.m_on_event(this, ctext_event::SCROLL);
+  }
+
   return 0;
 }
 
@@ -124,20 +136,26 @@ int8_t ctext::printf(const char*format, ...)
   this->render();
 }
 
-int8_t ctext::rebuf()
+void ctext::get_win_size() 
 {
   int32_t width = 0, height = 0;
 
-  // Alright here's the hard stuff.
   if(this->m_win)
   {
     getmaxyx(this->m_win, height, width);
   }
+  this->m_win_width = width;
+  this->m_win_height = height;
+}
+
+int8_t ctext::rebuf()
+{
+  this->get_win_size();
 
   // The actual scroll back, which is what
   // people expect in this feature is the 
   // configured scrollback + the window height.
-  size_t actual_scroll_back = height + this->m_config.m_scrollback;
+  size_t actual_scroll_back = this->m_win_height + this->m_config.m_scrollback;
 
   if(this->m_buffer.size() > actual_scroll_back)
   {
@@ -174,6 +192,21 @@ int8_t ctext::printf(const char*format, ...)
   va_end(args);
 
   this->m_buffer.push_back(really_large_buffer);
+
+  if (this->m_config.m_on_event)
+  {
+    this->m_config.m_on_event(this, ctext_event::DATA);
+  }
+  
+  // Since we are adding content we need to see if we are
+  // to force on scroll.
+  if(this->m_config.m_scroll_on_append)
+  {
+    this->get_win_size();
+    // now we force it.
+    this->direct_scroll(this->m_buffer.size() - this->m_win_height, 0);
+  }
+
   return this->render();
 }
 
@@ -181,4 +214,15 @@ int8_t ctext::render()
 {
   // Calculate the bounds of everything first.
   this->rebuf();
+
+  if(!this->m_win)
+  {
+    // not doing anything without a window.
+    return -1;
+  }
+
+  int32_t width = 0, height = 0;
+  getmaxyx(this->m_win, height, width);
+
+  // By this time, if we are bounded by a box,
 }
