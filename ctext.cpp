@@ -1,4 +1,7 @@
 #include "ctext.h"
+#include <string.h>
+
+using namespace std;
 
 const ctext_config config_default = {
   .m_tabstop = CTEXT_DEFAULT_TABSTOP,
@@ -12,7 +15,7 @@ const ctext_config config_default = {
 
 char really_large_buffer[64000] = {0};
 
-ctext::ctext(WINDOW *win = 0, ctext_config *config = 0)
+ctext::ctext(WINDOW *win, ctext_config *config)
 {
   this->m_win = win;
   
@@ -50,7 +53,7 @@ int8_t ctext::attach_curses_window(WINDOW *win)
   return this->render();
 }
 
-size_t ctext::clear(size_t amount = 0)
+size_t ctext::clear(size_t amount)
 {
   if(amount == 0) 
   {
@@ -112,27 +115,27 @@ int8_t get_size(size_t*x, size_t*y)
   return 0;
 }
 
-int8_t ctext::up(size_t amount = 1) 
+size_t ctext::up(size_t amount) 
 {
   return this->down(-amount);
 }
 
-int8_t ctext::down(size_t amount = 1) 
+size_t ctext::down(size_t amount) 
 {
   return this->scroll_to(this->m_pos_x, this->m_pos_y + amount);
 }
 
-int8_t ctext::left(size_t amount = 1) 
+size_t ctext::left(size_t amount) 
 {
   return this->right(-amount);
 }
 
-int8_t ctext:right(size_t amount = 1) 
+size_t ctext:right(size_t amount) 
 {
   return this->scroll_to(this->m_pos_x + amount, this->m_pos_y);
 }
 
-int8_t ctext::printf(const char*format, ...) 
+size_t ctext::printf(const char*format, ...) 
 {
   this->render();
 }

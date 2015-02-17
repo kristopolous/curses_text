@@ -1,6 +1,6 @@
 #include <vector>
-#include <stdint.h>
 #include <ncursesw/ncurses.h>
+#include <stdint.h>
 
 #ifndef __83a9222a_c8b9_4f36_9721_5dfbaccb28d0_CTEXT
 #define __83a9222a_c8b9_4f36_9721_5dfbaccb28d0_CTEXT
@@ -121,7 +121,7 @@ struct ctext_config_struct
 #define CTEXT_DEFAULT_ON_EVENT 0
 };
 
-typedef struct ctext_config_struct ctext_config
+typedef struct ctext_config_struct ctext_config;
 
 class ctext 
 {
