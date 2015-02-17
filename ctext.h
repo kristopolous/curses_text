@@ -15,7 +15,7 @@ enum ctext_event {
   DATA
 };
 
-struct ctext_config 
+struct ctext_config_struct
 {
   // 
   // If the content has a tab, '\t' contained
@@ -120,6 +120,8 @@ struct ctext_config
 #define CTEXT_DEFAULT_ON_EVENT 0
 };
 
+typedef struct ctext_config_struct ctext_config
+
 class ctext 
 {
   public:
@@ -133,14 +135,14 @@ class ctext
     // is made so that further modifications are not reflected
     // in a previously instantiated instance.
     //
-    int8_t set_config(struct ctext_config *config);
+    int8_t set_config(ctext_config *config);
 
     //
     // get_config allows you to change a parameter in the 
     // configuration of a ctext instance and to duplicate
     // an existing configuration in a new instance.
     //
-    int8_t get_config(struct ctext_config *config);
+    int8_t get_config(ctext_config *config);
 
     // 
     // At most 1 curses window may be attached at a time.
@@ -165,7 +167,7 @@ class ctext
     // The return code is how many rows were cleared from the 
     // buffer.
     //
-    size_t clear(size_t amount);
+    size_t clear(size_t amount = 0);
 
     // 
     // Scroll_to when appending to the bottom in the traditional
@@ -224,13 +226,18 @@ class ctext
     //
     int8_t printf(const char*format, ...);
 
-
   private:
     int8_t render();
 
     WINDOW *m_win;
-    ctext_config *m_config;
+    ctext_config m_config;
     ctext_buffer m_buffer;
+
+    size_t m_pos_x;
+    size_t m_pos_y;
+
+    size_t m_max_x;
+    size_t m_max_y;
 };
 
 int cprintf(ctext*win, const char *format, ...);
