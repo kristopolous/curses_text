@@ -8,6 +8,7 @@
 using namespace std;
 
 typedef vector<wstring> ctext_buffer;
+typedef int8_t* ctext_cb;
 
 enum ctext_event {
   SCROLL,
@@ -116,7 +117,7 @@ struct ctext_config_struct
   //
   // The context can be queried based on the event
   //
-  int8_t *(*m_on_event)(ctext *context, ctext_event event);
+  ctext_cb (*m_on_event)(ctext *context, ctext_event event);
 #define CTEXT_DEFAULT_ON_EVENT 0
 };
 
