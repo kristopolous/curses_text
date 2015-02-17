@@ -227,7 +227,9 @@ class ctext
     int8_t printf(const char*format, ...);
 
   private:
+    int8_t rebuf();
     int8_t render();
+    int8_t direct_scroll(size_t x, size_t y);
 
     WINDOW *m_win;
     ctext_config m_config;
