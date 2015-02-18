@@ -51,25 +51,37 @@ int main(int argc, char **argv ){
   config.m_bounding_box = false;
   config.m_scroll_on_append = true;
 //  config.m_do_wrap = true;
-  config.m_append_top = true;
+//  config.m_append_top = true;
   
   // set the config back
   ct.set_config(&config);
 
+  int speed = 50000;
   int8_t x = 0;
     wbkgd(local_win,COLOR_PAIR(1));
   for(x = 0; x < 15; x++) {
     ct.printf("hello %d world", x);
-    usleep(200000);
+    usleep(speed);
   }
 
-  for(x = 0; x < 15; x++) {
-    usleep(200000);
+  for(x = 0; x < 5; x++) {
+    usleep(speed);
     ct.right();
-    usleep(100000);
+    usleep(speed);
+    ct.down();
+  }
+  for(x = 0; x < 15; x++) {
+    usleep(speed);
     ct.left();
-   // ct.down();
+    usleep(speed);
+    ct.up();
   }
 
+  for(x = 0; x < 18; x++) {
+    ct.clear(1);
+    usleep(speed);
+  }
+
+  endwin();
   return 0;
 }

@@ -56,13 +56,20 @@ int8_t ctext::attach_curses_window(WINDOW *win)
 
 int16_t ctext::clear(int16_t amount)
 {
+  int16_t ret = 0;
   if(amount == 0) 
   {
+    ret = this->m_buffer.size();
     this->m_buffer.clear();
   }
   else
   {
-    this->m_buffer.erase(this->m_buffer.begin(), this->m_buffer.begin() + amount);
+    if(this->m_buffer.size()) 
+    {
+      ret = this->m_buffer.size();
+      this->m_buffer.erase(this->m_buffer.begin(), this->m_buffer.begin() + amount);
+      ret -= this->m_buffer.size();
+    }
   }
 
   if (this->m_config.m_on_event)
@@ -70,7 +77,8 @@ int16_t ctext::clear(int16_t amount)
     this->m_config.m_on_event(this, CTEXT_CLEAR);
   }
 
-  return this->render();
+  this->render();
+  return ret;
 }
 
 int8_t ctext::direct_scroll(int16_t x, int16_t y)
@@ -288,7 +296,7 @@ int8_t ctext::render()
     index = this->m_pos_x + this->m_win_height;
   }
 
-  while(line < this->m_win_height)
+  while(line <= this->m_win_height)
   {
     // Reset the offset.
     offset = start_char;
@@ -310,7 +318,7 @@ int8_t ctext::render()
           to_add.size() == this->m_win_width &&
 
           // and we haven't hit the bottom
-          line < this->m_win_height
+          line <= this->m_win_height
         )
       {
         // move our line forward
