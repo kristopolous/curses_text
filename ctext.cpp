@@ -25,7 +25,7 @@ ctext::ctext(WINDOW *win, ctext_config *config)
   } 
   else 
   {
-    memcpy(&this->m_config, config_default, sizeof(ctext_config));
+    memcpy(&this->m_config, &config_default, sizeof(ctext_config));
   }
 
   this->m_pos_x = 0;
@@ -66,7 +66,7 @@ size_t ctext::clear(size_t amount)
 
   if (this->m_config.m_on_event)
   {
-    this->m_config.m_on_event(this, ctext_event::CLEAR);
+    this->m_config.m_on_event(this, CTEXT_CLEAR);
   }
 
   return this->render();
@@ -87,7 +87,7 @@ int8_t ctext::direct_scroll(size_t x, size_t y)
 
   if (this->m_config.m_on_event)
   {
-    this->m_config.m_on_event(this, ctext_event::SCROLL);
+    this->m_config.m_on_event(this, CTEXT_SCROLL);
   }
 
   return 0;
@@ -107,7 +107,7 @@ int8_t ctext::get_offset(size_t*x, size_t*y)
   return 0;
 }
 
-int8_t get_size(size_t*x, size_t*y)
+int8_t ctext::get_size(size_t*x, size_t*y)
 {
   *x = this->m_max_x;
   *y = this->m_max_y;
@@ -130,7 +130,7 @@ size_t ctext::left(size_t amount)
   return this->right(-amount);
 }
 
-size_t ctext:right(size_t amount) 
+size_t ctext::right(size_t amount) 
 {
   return this->scroll_to(this->m_pos_x + amount, this->m_pos_y);
 }
@@ -187,18 +187,26 @@ int8_t ctext::rebuf()
   return this->direct_scroll(this->m_pos_x, this->m_pos_y);
 }
 
-int8_t ctext::printf(const char*format, ...)
+int cprintf(ctext*win, const char *format, ...)
 {
+  int ret;
   va_list args;
-  va_start(args, fmt);
-  vsprintf(really_large_buffer, args);
+  va_start(args, format);
+  ret = win->vprintf(format, args);
   va_end(args);
+  return ret;
+}
+
+int8_t ctext::vprintf(const char*format, va_list ap)
+{
+  memset(really_large_buffer, 0, sizeof(really_large_buffer));
+  vsprintf(really_large_buffer, format, ap);
 
   this->m_buffer.push_back(really_large_buffer);
 
   if (this->m_config.m_on_event)
   {
-    this->m_config.m_on_event(this, ctext_event::DATA);
+    this->m_config.m_on_event(this, CTEXT_DATA);
   }
   
   // Since we are adding content we need to see if we are
@@ -211,6 +219,18 @@ int8_t ctext::printf(const char*format, ...)
   }
 
   return this->render();
+}
+
+int8_t ctext::printf(const char*format, ...)
+{
+  int8_t ret;
+
+  va_list args;
+  va_start(args, format);
+  ret = this->vprintf(format, args);
+
+  va_end(args);
+  return ret;
 }
 
 int8_t ctext::render() 
@@ -258,8 +278,9 @@ int8_t ctext::render()
   size_t line = 0;
 
   // start at the beginning of the buffer.
-  size_t index = this->m_pos_x;
+  int16_t index = this->m_pos_x;
   size_t directionality = +1;
+  wstring to_add;
 
   // if we are appending to the top then we start
   // at the end and change our directionality.
@@ -279,7 +300,7 @@ int8_t ctext::render()
     {
       // We only index into the object if we have the
       // data to do so.
-      wstring to_add = this->m_buffer[index].substr(start_char, this->m_win_width);
+      to_add = this->m_buffer[index].substr(start_char, this->m_win_width);
       mvwaddwstr(this->m_win, line, 0, to_add);
 
       // if we are wrapping, then we do that here.

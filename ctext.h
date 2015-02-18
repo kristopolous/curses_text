@@ -1,3 +1,4 @@
+#include <string>
 #include <vector>
 #include <ncursesw/ncurses.h>
 #include <stdint.h>
@@ -8,13 +9,14 @@
 using namespace std;
 
 typedef vector<wstring> ctext_buffer;
-typedef int8_t* ctext_cb;
 
-enum ctext_event {
-  SCROLL,
-  CLEAR,
-  DATA
-};
+typedef enum ctext_event_enum {
+  CTEXT_SCROLL,
+  CTEXT_CLEAR,
+  CTEXT_DATA
+} ctext_event;
+
+class ctext;
 
 struct ctext_config_struct
 {
@@ -117,7 +119,7 @@ struct ctext_config_struct
   //
   // The context can be queried based on the event
   //
-  ctext_cb (*m_on_event)(ctext *context, ctext_event event);
+  int8_t (*m_on_event)(ctext *context, ctext_event event);
 #define CTEXT_DEFAULT_ON_EVENT 0
 };
 
@@ -226,6 +228,7 @@ class ctext
     // application to this library seamlessly.
     //
     int8_t printf(const char*format, ...);
+    int8_t vprintf(const char*format, va_list ap);
 
   private:
     int8_t rebuf();
