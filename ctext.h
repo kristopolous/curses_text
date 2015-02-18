@@ -124,7 +124,7 @@ class ctext
     ctext(WINDOW *win = 0, ctext_config *config = 0);
 
     //
-    // A ctext istance has a configuration specified through
+    // A ctext instance has a configuration specified through
     // the ctext_config structure above
     //
     // When this function is called, a copy of the structure
