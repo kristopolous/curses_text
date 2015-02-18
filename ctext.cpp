@@ -14,7 +14,7 @@ const ctext_config config_default = {
   .m_on_event = CTEXT_DEFAULT_ON_EVENT
 };
 
-char really_large_buffer[64000] = {0};
+char large_buffer[8192] = {0};
 
 ctext::ctext(WINDOW *win, ctext_config *config)
 {
@@ -44,7 +44,7 @@ int8_t ctext::set_config(ctext_config *config)
 
 int8_t ctext::get_config(ctext_config *config)
 {
-  memcpy(&config, &this->m_config, sizeof(ctext_config));
+  memcpy(config, &this->m_config, sizeof(ctext_config));
   return 0;
 }
 
@@ -195,10 +195,11 @@ int cprintf(ctext*win, const char *format, ...)
 
 int8_t ctext::vprintf(const char*format, va_list ap)
 {
-  memset(really_large_buffer, 0, sizeof(really_large_buffer));
-  vsprintf(really_large_buffer, format, ap);
+  memset(large_buffer, 0, sizeof(large_buffer));
+  vsprintf(large_buffer, format, ap);
 
-  this->m_buffer.push_back(really_large_buffer);
+  wstring wstr (large_buffer, large_buffer + strlen(large_buffer));
+  this->m_buffer.push_back(wstr);
 
   if (this->m_config.m_on_event)
   {
@@ -260,7 +261,7 @@ int8_t ctext::render()
   // Regardless of whether this is append to top
   // or bottom we generate top to bottom.
 
-  size_t start_char = max(0, this->m_pos_y);
+  size_t start_char = max(0, (int32_t)this->m_pos_x);
   size_t offset = start_char;
   // the endchar will be in the substr
   
@@ -277,6 +278,7 @@ int8_t ctext::render()
   int16_t index = this->m_pos_x;
   size_t directionality = +1;
   wstring to_add;
+  wstring *source;
 
   // if we are appending to the top then we start
   // at the end and change our directionality.
@@ -292,11 +294,12 @@ int8_t ctext::render()
     offset = start_char;
 
     index += directionality;
-    if(index < this->m_max_y || index >= 0)
+    if(index < this->m_max_y && index >= 0)
     {
       // We only index into the object if we have the
       // data to do so.
-      to_add = this->m_buffer[index].substr(start_char, this->m_win_width);
+      source = &this->m_buffer[index];
+      to_add = (*source).substr(offset, this->m_win_width);
       mvwaddwstr(this->m_win, line, 0, to_add.c_str());
 
       // if we are wrapping, then we do that here.
@@ -314,10 +317,10 @@ int8_t ctext::render()
         line++;
 
         // and the start_char
-        start_char += this->m_win_width;
+        offset += this->m_win_width;
 
         // substring into this character now at this advanced position
-        to_add = this->m_buffer[index].substr(start_char, this->m_win_width);
+        to_add = this->m_buffer[index].substr(offset, this->m_win_width);
         
         // and add it to the screen
         mvwaddwstr(this->m_win, line, 0, to_add.c_str());
