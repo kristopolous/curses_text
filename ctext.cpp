@@ -293,7 +293,7 @@ int8_t ctext::render()
   if(this->m_config.m_append_top)
   {
     directionality = -1;
-    index = this->m_pos_x + this->m_win_height;
+    index = this->m_pos_y + this->m_win_height - 1;
   }
 
   while(line <= this->m_win_height)
@@ -301,7 +301,6 @@ int8_t ctext::render()
     // Reset the offset.
     offset = start_char;
 
-    index += directionality;
     if(index < this->m_max_y && index >= 0)
     {
       // We only index into the object if we have the
@@ -334,6 +333,7 @@ int8_t ctext::render()
         mvwaddwstr(this->m_win, line, 0, to_add.c_str());
       }
     }
+    index += directionality;
     line++;
   }
 

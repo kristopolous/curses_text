@@ -34,9 +34,8 @@ int main(int argc, char **argv ){
   WINDOW *local_win;
   ctext_config config;
 
-  local_win = newwin(7, 8, 5, 5);
+  local_win = newwin(7, 9, 5, 5);
   //box(local_win, 0 , 0);
-  wborder(local_win, '|', '|', '-', '-', '+', '+', '+', '+');
   wrefresh(local_win);
   start_color();
   init_pair(1,COLOR_WHITE, COLOR_BLUE);
@@ -50,13 +49,13 @@ int main(int argc, char **argv ){
   config.m_on_event = my_event;
   config.m_bounding_box = false;
   config.m_scroll_on_append = true;
-//  config.m_do_wrap = true;
-//  config.m_append_top = true;
+  //config.m_do_wrap = true;
+  config.m_append_top = true;
   
   // set the config back
   ct.set_config(&config);
 
-  int speed = 50000;
+  int speed = 150000;
   int8_t x = 0;
     wbkgd(local_win,COLOR_PAIR(1));
   for(x = 0; x < 15; x++) {
