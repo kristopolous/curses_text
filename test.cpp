@@ -1,5 +1,4 @@
 #include <iostream>
-#include <cmath>
 #include <locale>
 #include <unistd.h>
 #include "ctext.h"
