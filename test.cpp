@@ -1,4 +1,3 @@
-#include <iostream>
 #include <locale>
 #include <unistd.h>
 #include "ctext.h"
