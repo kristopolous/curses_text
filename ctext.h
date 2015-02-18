@@ -97,7 +97,7 @@ struct ctext_config_struct
   // visible.
   //
   bool m_scroll_on_append;
-#define CTEXT_DEFAULT_APPEND_TOP false
+#define CTEXT_DEFAULT_SCROLL_ON_APPEND false
 
   //
   // The following function pointer, if defined

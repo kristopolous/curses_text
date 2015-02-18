@@ -9,7 +9,7 @@ const ctext_config config_default = {
   .m_bounding_box = CTEXT_DEFAULT_BOUNDING_BOX,
   .m_do_wrap = CTEXT_DEFAULT_DO_WRAP,
   .m_append_top = CTEXT_DEFAULT_APPEND_TOP,
-  .m_scroll_on_append = CTEXT_DEFAULT_APPEND_TOP,
+  .m_scroll_on_append = CTEXT_DEFAULT_SCROLL_ON_APPEND,
   .m_on_event = CTEXT_DEFAULT_ON_EVENT
 };
 
