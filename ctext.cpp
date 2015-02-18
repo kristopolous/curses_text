@@ -1,5 +1,6 @@
 #include "ctext.h"
 #include <string.h>
+#include <algorithm>    // std::max
 
 using namespace std;
 
@@ -76,8 +77,8 @@ int8_t ctext::direct_scroll(size_t x, size_t y)
 {
   if(this->m_config.m_bounding_box) 
   {
-    x = max(0, x);
-    y = max(0, y);
+    x = max(0, (int32_t)x);
+    y = max(0, (int32_t)y);
     x = min(x, this->m_max_x);
     y = min(y, this->m_max_y);
   }
@@ -135,11 +136,6 @@ size_t ctext::right(size_t amount)
   return this->scroll_to(this->m_pos_x + amount, this->m_pos_y);
 }
 
-size_t ctext::printf(const char*format, ...) 
-{
-  this->render();
-}
-
 void ctext::get_win_size() 
 {
   int32_t width = 0, height = 0;
@@ -163,7 +159,7 @@ int8_t ctext::rebuf()
 
   if(this->m_buffer.size() > actual_scroll_back)
   {
-    this->m_buffer.erase(this->m_buffer.begin(), this->m_buffer().size() - actual_scroll_back);
+    this->m_buffer.erase(this->m_buffer.begin(), this->m_buffer.end() - actual_scroll_back);
   }
   
   this->m_max_x = 0;  
@@ -179,7 +175,7 @@ int8_t ctext::rebuf()
   }
  
   // this is practically free so we'll just do it.
-  this->m_max_y = this->m_buffer().size();
+  this->m_max_y = this->m_buffer.size();
   
   // Since we've changed the bounding box of the content we have to
   // issue a rescroll on exactly our previous parameters. This may
@@ -301,7 +297,7 @@ int8_t ctext::render()
       // We only index into the object if we have the
       // data to do so.
       to_add = this->m_buffer[index].substr(start_char, this->m_win_width);
-      mvwaddwstr(this->m_win, line, 0, to_add);
+      mvwaddwstr(this->m_win, line, 0, to_add.c_str());
 
       // if we are wrapping, then we do that here.
       while(
@@ -324,7 +320,7 @@ int8_t ctext::render()
         to_add = this->m_buffer[index].substr(start_char, this->m_win_width);
         
         // and add it to the screen
-        mvwaddwstr(this->m_win, line, 0, to_add);
+        mvwaddwstr(this->m_win, line, 0, to_add.c_str());
       }
     }
     line++;
