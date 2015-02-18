@@ -31,7 +31,7 @@ struct ctext_config_struct
   // This specifies how many lines are kept
   // in the ring-buffer.  
   //
-  size_t m_scrollback;
+  int16_t m_scrollback;
 #define CTEXT_DEFAULT_SCROLLBACK 100
 
   //
@@ -170,7 +170,7 @@ class ctext
     // The return code is how many rows were cleared from the 
     // buffer.
     //
-    size_t clear(size_t amount = 0);
+    int16_t clear(int16_t amount = 0);
 
     // 
     // Scroll_to when appending to the bottom in the traditional
@@ -183,14 +183,14 @@ class ctext
     //
     // Returns 0 on success
     //
-    int8_t scroll_to(size_t x, size_t y);
+    int8_t scroll_to(int16_t x, int16_t y);
 
     //
     // get_offset returns the current coordinates of the view port.
     // The values from get_offset are complementary to those 
     // of scroll_to
     // 
-    int8_t get_offset(size_t*x, size_t*y); 
+    int8_t get_offset(int16_t*x, int16_t*y); 
 
     // 
     // get_size returns the outer text bounds length (x) and height
@@ -200,7 +200,7 @@ class ctext
     // content in the buffer for x and the number of rows of content
     // for y.
     //
-    int8_t get_size(size_t*x, size_t*y);
+    int8_t get_size(int16_t*x, int16_t*y);
 
     //
     // Each of the directional functions,
@@ -211,10 +211,10 @@ class ctext
     // The return code is how far the movement
     // happened.
     //
-    size_t up(size_t amount = 1);
-    size_t down(size_t amount = 1);
-    size_t left(size_t amount = 1);
-    size_t right(size_t amount = 1);
+    int16_t up(int16_t amount = 1);
+    int16_t down(int16_t amount = 1);
+    int16_t left(int16_t amount = 1);
+    int16_t right(int16_t amount = 1);
 
     //
     // printf is identical to printf(3) and can be called
@@ -233,21 +233,21 @@ class ctext
   private:
     int8_t rebuf();
     int8_t render();
-    int8_t direct_scroll(size_t x, size_t y);
+    int8_t direct_scroll(int16_t x, int16_t y);
 
     WINDOW *m_win;
     ctext_config m_config;
     ctext_buffer m_buffer;
 
-    size_t m_pos_x;
-    size_t m_pos_y;
+    int16_t m_pos_x;
+    int16_t m_pos_y;
 
-    size_t m_max_x;
-    size_t m_max_y;
+    int16_t m_max_x;
+    int16_t m_max_y;
 
     void get_win_size();
-    size_t m_win_width;
-    size_t m_win_height;
+    int16_t m_win_width;
+    int16_t m_win_height;
 };
 
 int cprintf(ctext*win, const char *format, ...);

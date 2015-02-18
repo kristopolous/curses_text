@@ -34,8 +34,12 @@ int main(int argc, char **argv ){
   WINDOW *local_win;
   ctext_config config;
 
-  local_win = newwin(8, 8, 5, 5);
-  box(local_win, 0 , 0);
+  local_win = newwin(7, 8, 5, 5);
+  //box(local_win, 0 , 0);
+  wborder(local_win, '|', '|', '-', '-', '+', '+', '+', '+');
+  wrefresh(local_win);
+  start_color();
+  init_pair(1,COLOR_WHITE, COLOR_BLUE);
 
   ctext ct(local_win);
 
@@ -45,20 +49,25 @@ int main(int argc, char **argv ){
   // add my handler
   config.m_on_event = my_event;
   config.m_bounding_box = false;
-  config.m_do_wrap = true;
+  config.m_scroll_on_append = true;
+//  config.m_do_wrap = true;
+  config.m_append_top = true;
   
   // set the config back
   ct.set_config(&config);
 
   int8_t x = 0;
-  for(x = 0; x < 10; x++) {
+    wbkgd(local_win,COLOR_PAIR(1));
+  for(x = 0; x < 15; x++) {
     ct.printf("hello %d world", x);
+    usleep(200000);
   }
 
   for(x = 0; x < 15; x++) {
     usleep(200000);
     ct.right();
     usleep(100000);
+    ct.left();
    // ct.down();
   }
 

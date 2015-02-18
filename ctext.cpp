@@ -54,7 +54,7 @@ int8_t ctext::attach_curses_window(WINDOW *win)
   return this->render();
 }
 
-size_t ctext::clear(size_t amount)
+int16_t ctext::clear(int16_t amount)
 {
   if(amount == 0) 
   {
@@ -73,7 +73,7 @@ size_t ctext::clear(size_t amount)
   return this->render();
 }
 
-int8_t ctext::direct_scroll(size_t x, size_t y)
+int8_t ctext::direct_scroll(int16_t x, int16_t y)
 {
   if(this->m_config.m_bounding_box) 
   {
@@ -94,13 +94,13 @@ int8_t ctext::direct_scroll(size_t x, size_t y)
   return 0;
 }
 
-int8_t ctext::scroll_to(size_t x, size_t y)
+int8_t ctext::scroll_to(int16_t x, int16_t y)
 {
   this->direct_scroll(x, y);
   return this->render();
 }
 
-int8_t ctext::get_offset(size_t*x, size_t*y)
+int8_t ctext::get_offset(int16_t*x, int16_t*y)
 {
   *x = this->m_pos_x;
   *y = this->m_pos_y;
@@ -108,7 +108,7 @@ int8_t ctext::get_offset(size_t*x, size_t*y)
   return 0;
 }
 
-int8_t ctext::get_size(size_t*x, size_t*y)
+int8_t ctext::get_size(int16_t*x, int16_t*y)
 {
   *x = this->m_max_x;
   *y = this->m_max_y;
@@ -116,22 +116,22 @@ int8_t ctext::get_size(size_t*x, size_t*y)
   return 0;
 }
 
-size_t ctext::up(size_t amount) 
+int16_t ctext::up(int16_t amount) 
 {
   return this->down(-amount);
 }
 
-size_t ctext::down(size_t amount) 
+int16_t ctext::down(int16_t amount) 
 {
   return this->scroll_to(this->m_pos_x, this->m_pos_y + amount);
 }
 
-size_t ctext::left(size_t amount) 
+int16_t ctext::left(int16_t amount) 
 {
   return this->right(-amount);
 }
 
-size_t ctext::right(size_t amount) 
+int16_t ctext::right(int16_t amount) 
 {
   return this->scroll_to(this->m_pos_x + amount, this->m_pos_y);
 }
@@ -155,7 +155,7 @@ int8_t ctext::rebuf()
   // The actual scroll back, which is what
   // people expect in this feature is the 
   // configured scrollback + the window height.
-  size_t actual_scroll_back = this->m_win_height + this->m_config.m_scrollback;
+  int16_t actual_scroll_back = this->m_win_height + this->m_config.m_scrollback;
 
   if(this->m_buffer.size() > actual_scroll_back)
   {
@@ -170,7 +170,7 @@ int8_t ctext::rebuf()
   {
     for(ctext_buffer::const_iterator it = this->m_buffer.begin(); it != this->m_buffer.end(); it++) 
     {
-      this->m_max_x = max(this->m_max_x, (*it).size());
+      this->m_max_x = max((int)this->m_max_x, (int)(*it).size());
     }
   }
  
@@ -212,7 +212,7 @@ int8_t ctext::vprintf(const char*format, va_list ap)
   {
     this->get_win_size();
     // now we force it.
-    this->direct_scroll(this->m_buffer.size() - this->m_win_height, 0);
+    this->direct_scroll(0, this->m_buffer.size() - this->m_win_height);
   }
 
   return this->render();
@@ -261,8 +261,8 @@ int8_t ctext::render()
   // Regardless of whether this is append to top
   // or bottom we generate top to bottom.
 
-  size_t start_char = max(0, (int32_t)this->m_pos_x);
-  size_t offset = start_char;
+  int16_t start_char = max(0, (int32_t)this->m_pos_x);
+  int16_t offset = start_char;
   // the endchar will be in the substr
   
   // We start as m_pos_x in our list and move up to
@@ -272,11 +272,11 @@ int8_t ctext::render()
   //
   // This is the current line of output, which stays
   // below m_win_height
-  size_t line = 0;
+  int16_t line = 0;
 
   // start at the beginning of the buffer.
-  int16_t index = this->m_pos_x;
-  size_t directionality = +1;
+  int16_t index = this->m_pos_y;
+  int16_t directionality = +1;
   wstring to_add;
   wstring *source;
 
