@@ -26,6 +26,8 @@ int8_t my_event(ctext *context, ctext_event event)
 }
 
 int main(int argc, char **argv ){
+  int speed = 150000;
+  int8_t x = 0;
   locale::global(locale("en_US.utf8"));
 
   initscr();  
@@ -35,10 +37,10 @@ int main(int argc, char **argv ){
   ctext_config config;
 
   local_win = newwin(7, 9, 5, 5);
-  //box(local_win, 0 , 0);
-  wrefresh(local_win);
   start_color();
+
   init_pair(1,COLOR_WHITE, COLOR_BLUE);
+  wbkgd(local_win,COLOR_PAIR(1));
 
   ctext ct(local_win);
 
@@ -55,9 +57,6 @@ int main(int argc, char **argv ){
   // set the config back
   ct.set_config(&config);
 
-  int speed = 150000;
-  int8_t x = 0;
-    wbkgd(local_win,COLOR_PAIR(1));
   for(x = 0; x < 15; x++) {
     ct.printf("hello %d world", x);
     usleep(speed);
@@ -69,6 +68,7 @@ int main(int argc, char **argv ){
     usleep(speed);
     ct.down();
   }
+
   for(x = 0; x < 15; x++) {
     usleep(speed);
     ct.left();
