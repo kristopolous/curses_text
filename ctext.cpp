@@ -5,7 +5,6 @@
 using namespace std;
 
 const ctext_config config_default = {
-  .m_tabstop = CTEXT_DEFAULT_TABSTOP,
   .m_scrollback = CTEXT_DEFAULT_SCROLLBACK,
   .m_bounding_box = CTEXT_DEFAULT_BOUNDING_BOX,
   .m_do_wrap = CTEXT_DEFAULT_DO_WRAP,
@@ -171,9 +170,11 @@ int8_t ctext::rebuf()
   }
   
   this->m_max_x = 0;  
+  //
   // Now unfortunately we have to do a scan over everything in N time to find
   // the maximum length string --- but only if we care about the bounding
   // box
+  //
   if(this->m_config.m_bounding_box)
   {
     for(ctext_buffer::const_iterator it = this->m_buffer.begin(); it != this->m_buffer.end(); it++) 
@@ -185,9 +186,11 @@ int8_t ctext::rebuf()
   // this is practically free so we'll just do it.
   this->m_max_y = this->m_buffer.size();
   
+  //
   // Since we've changed the bounding box of the content we have to
   // issue a rescroll on exactly our previous parameters. This may
   // force us inward or may retain our position.
+  // 
   return this->direct_scroll(this->m_pos_x, this->m_pos_y);
 }
 
@@ -273,13 +276,15 @@ int8_t ctext::render()
   int16_t offset = start_char;
   // the endchar will be in the substr
   
-  // We start as m_pos_x in our list and move up to
-  // m_pos_x + m_win_height except in the case of 
+  //
+  // We start as m_pos_y in our list and move up to
+  // m_pos_y + m_win_height except in the case of 
   // wrap around.  Because of this special case,
   // we compute when to exit slightly differently.
   //
   // This is the current line of output, which stays
   // below m_win_height
+  //
   int16_t line = 0;
 
   // start at the beginning of the buffer.

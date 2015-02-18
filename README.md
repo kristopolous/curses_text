@@ -11,7 +11,6 @@ The utility class has a number of parameters which should be familiar:
   * append on bottom or on top
   * word wrap
   * scroll on append
-  * tabstop length
 
 Furthermore it can be manipulated using the following actions:
 

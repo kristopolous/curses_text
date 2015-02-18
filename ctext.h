@@ -20,13 +20,6 @@ class ctext;
 
 struct ctext_config_struct
 {
-  // 
-  // If the content has a tab, '\t' contained
-  // within it, what should the margin be.
-  //
-  int8_t m_tabstop;
-#define CTEXT_DEFAULT_TABSTOP  2
-
   //
   // This specifies how many lines are kept
   // in the ring-buffer.  
