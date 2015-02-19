@@ -13,7 +13,8 @@ typedef vector<wstring> ctext_buffer;
 typedef enum ctext_event_enum {
   CTEXT_SCROLL,
   CTEXT_CLEAR,
-  CTEXT_DATA
+  CTEXT_DATA,
+  CTEXT_CONFIG
 } ctext_event;
 
 class ctext;
@@ -24,8 +25,8 @@ struct ctext_config_struct
   // This specifies how many lines are kept
   // in the ring-buffer.  
   //
-  int16_t m_scrollback;
-#define CTEXT_DEFAULT_SCROLLBACK 100
+  int16_t m_buffer_size;
+#define CTEXT_DEFAULT_BUFFER_SIZE 100
 
   //
   // The bounding box bool specifies whether

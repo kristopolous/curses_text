@@ -1,5 +1,6 @@
 #include <locale>
 #include <unistd.h>
+#include <assert.h>
 #include "ctext.h"
 
 int8_t my_event(ctext *context, ctext_event event)
@@ -26,6 +27,7 @@ int8_t my_event(ctext *context, ctext_event event)
 int main(int argc, char **argv ){
   int speed = 150000;
   int8_t x = 0;
+  int amount = 0;
   locale::global(locale("en_US.utf8"));
 
   initscr();  
@@ -34,7 +36,7 @@ int main(int argc, char **argv ){
   WINDOW *local_win;
   ctext_config config;
 
-  local_win = newwin(7, 9, 5, 5);
+  local_win = newwin(9, 9, 5, 5);
   start_color();
 
   init_pair(1,COLOR_WHITE, COLOR_BLUE);
@@ -48,15 +50,18 @@ int main(int argc, char **argv ){
   // add my handler
   config.m_on_event = my_event;
   config.m_bounding_box = false;
+  config.m_buffer_size = 10;
   config.m_scroll_on_append = true;
-  //config.m_do_wrap = true;
+  config.m_do_wrap = true;
   config.m_append_top = true;
   
   // set the config back
   ct.set_config(&config);
 
   for(x = 0; x < 15; x++) {
-    ct.printf("hello %d world", x);
+    ct.printf("%c%c%c%c abb %x %d hello %d world", 
+        'a' + x, 'A' + x, 'd' + x, 'g' + x, 
+        x * 19, x, x);
     usleep(speed);
   }
 
@@ -75,7 +80,17 @@ int main(int argc, char **argv ){
   }
 
   for(x = 0; x < 18; x++) {
-    ct.clear(1);
+    amount = ct.clear(1);
+    /*
+    if(x < 15) 
+    {
+      assert(amount == 1);
+    }
+    else
+    {
+      assert(amount == 0);
+    }
+    */
     usleep(speed);
   }
 

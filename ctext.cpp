@@ -5,7 +5,7 @@
 using namespace std;
 
 const ctext_config config_default = {
-  .m_scrollback = CTEXT_DEFAULT_SCROLLBACK,
+  .m_buffer_size = CTEXT_DEFAULT_BUFFER_SIZE,
   .m_bounding_box = CTEXT_DEFAULT_BOUNDING_BOX,
   .m_do_wrap = CTEXT_DEFAULT_DO_WRAP,
   .m_append_top = CTEXT_DEFAULT_APPEND_TOP,
@@ -38,6 +38,12 @@ ctext::ctext(WINDOW *win, ctext_config *config)
 int8_t ctext::set_config(ctext_config *config)
 {
   memcpy(&this->m_config, config, sizeof(ctext_config));
+
+  if (this->m_config.m_on_event)
+  {
+    this->m_config.m_on_event(this, CTEXT_CONFIG);
+  }
+
   return this->render();
 }
 
@@ -159,17 +165,13 @@ int8_t ctext::rebuf()
 {
   this->get_win_size();
 
-  // The actual scroll back, which is what
-  // people expect in this feature is the 
-  // configured scrollback + the window height.
-  int16_t actual_scroll_back = this->m_win_height + this->m_config.m_scrollback;
-
-  if(this->m_buffer.size() > actual_scroll_back)
+  if(this->m_buffer.size() > this->m_config.m_buffer_size)
   {
-    this->m_buffer.erase(this->m_buffer.begin(), this->m_buffer.end() - actual_scroll_back);
+    this->m_buffer.erase(this->m_buffer.begin(), this->m_buffer.end() - this->m_config.m_buffer_size);
   }
   
   this->m_max_x = 0;  
+
   //
   // Now unfortunately we have to do a scan over everything in N time to find
   // the maximum length string --- but only if we care about the bounding
@@ -183,7 +185,6 @@ int8_t ctext::rebuf()
     }
   }
  
-  // this is practically free so we'll just do it.
   this->m_max_y = this->m_buffer.size();
   
   //
@@ -316,14 +317,14 @@ int8_t ctext::render()
 
       // if we are wrapping, then we do that here.
       while(
-          this->m_config.m_do_wrap && 
+        this->m_config.m_do_wrap && 
 
-          // if our string still exhausts our entire width
-          to_add.size() == this->m_win_width &&
+        // if our string still exhausts our entire width
+        to_add.size() == this->m_win_width &&
 
-          // and we haven't hit the bottom
-          line <= this->m_win_height
-        )
+        // and we haven't hit the bottom
+        line <= this->m_win_height
+      )
       {
         // move our line forward
         line++;
