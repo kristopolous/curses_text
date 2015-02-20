@@ -9,8 +9,6 @@
 
 using namespace std;
 
-typedef vector<wstring> ctext_buffer;
-
 typedef enum ctext_event_enum {
   CTEXT_SCROLL,
   CTEXT_CLEAR,
@@ -132,18 +130,20 @@ struct ctext_config_struct
 
 typedef struct ctext_config_struct ctext_config;
 
-struct ctext_format
+typedef struct ctext_format_struct
 {
   int32_t offset;
   attr_t attrs;
   int16_t color_pair;
-};
+} ctext_format;
 
-struct ctext_row
+typedef struct ctext_row_struct
 {
   wstring data;
   vector<ctext_format> format;
-};
+} ctext_row;
+
+typedef vector<ctext_row> ctext_buffer;
 
 class ctext 
 {
@@ -252,6 +252,7 @@ class ctext
     int8_t vprintf(const char*format, va_list ap = 0);
 
   private:
+    void add_row();
     int8_t rebuf();
     int8_t render();
     int8_t direct_scroll(int16_t x, int16_t y);

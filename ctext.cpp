@@ -33,8 +33,8 @@ ctext::ctext(WINDOW *win, ctext_config *config)
   this->m_max_x = 0;
   this->m_max_y = 0;
 
-  // initialized the buffer with the empty string
-  this->m_buffer.push_back(wstring(L""));
+  // initialized the buffer with the empty row
+  this->add_row();
 }
 
 int8_t ctext::set_config(ctext_config *config)
@@ -197,7 +197,7 @@ int8_t ctext::rebuf()
   {
     for(ctext_buffer::const_iterator it = this->m_buffer.begin(); it != this->m_buffer.end(); it++) 
     {
-      this->m_max_x = max((int)this->m_max_x, (int)(*it).size());
+      this->m_max_x = max((int)this->m_max_x, (int)(*it).data.size());
     }
   }
  
@@ -209,6 +209,13 @@ int8_t ctext::rebuf()
   // force us inward or may retain our position.
   // 
   return this->direct_scroll(this->m_pos_x, this->m_pos_y);
+}
+
+void ctext::add_row()
+{
+  ctext_row row;
+  row.data = wstring(L"");
+  this->m_buffer.push_back(row);
 }
 
 int cprintf(ctext*win, const char *format, ...)
@@ -239,12 +246,12 @@ int8_t ctext::vprintf(const char*format, va_list ap)
   if(p_line)
   {
     wstring wstr (p_line, p_line + strlen(p_line));
-    this->m_buffer.back() += wstr;
+    this->m_buffer.back().data += wstr;
   }
   // this case is a single new line.
   else
   {
-    this->m_buffer.push_back(wstring(L""));
+    this->add_row();
   }
 
   if (this->m_config.m_on_event)
@@ -269,8 +276,8 @@ int8_t ctext::vprintf(const char*format, va_list ap)
     if(p_line)
     {
       // this means we have encountered a new line and must push our
-      // buffer forward - with the emptry string.
-      this->m_buffer.push_back(wstring(L""));
+      // buffer forward
+      this->add_row();
       ret = this->printf(p_line);
     }
   }
@@ -339,7 +346,7 @@ int8_t ctext::render()
   int16_t index = this->m_pos_y;
   int16_t directionality = +1;
   wstring to_add;
-  wstring *source;
+  ctext_row *source;
 
   // if we are appending to the top then we start
   // at the end and change our directionality.
@@ -359,9 +366,9 @@ int8_t ctext::render()
       // We only index into the object if we have the
       // data to do so.
       source = &this->m_buffer[index];
-      if(offset < (*source).size())
+      if(offset < (*source).data.size())
       {
-        to_add = (*source).substr(offset, this->m_win_width);
+        to_add = (*source).data.substr(offset, this->m_win_width);
       }
       else
       {
@@ -387,7 +394,7 @@ int8_t ctext::render()
         offset += this->m_win_width;
 
         // substring into this character now at this advanced position
-        to_add = this->m_buffer[index].substr(offset, this->m_win_width);
+        to_add = this->m_buffer[index].data.substr(offset, this->m_win_width);
         
         // and add it to the screen
         mvwaddwstr(this->m_win, line, 0, to_add.c_str());
