@@ -10,6 +10,7 @@ The utility class has a number of parameters which should be familiar:
   * scrollback buffer
   * append on bottom or on top
   * word wrap
+  * automatic newline
   * scroll on append
 
 Furthermore it can be manipulated using the following actions:

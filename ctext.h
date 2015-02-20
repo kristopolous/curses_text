@@ -132,6 +132,19 @@ struct ctext_config_struct
 
 typedef struct ctext_config_struct ctext_config;
 
+struct ctext_format
+{
+  int32_t offset;
+  attr_t attrs;
+  int16_t color_pair;
+};
+
+struct ctext_row
+{
+  wstring data;
+  vector<ctext_format> format;
+};
+
 class ctext 
 {
   public:
