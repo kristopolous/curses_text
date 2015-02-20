@@ -102,6 +102,18 @@ struct ctext_config_struct
 #define CTEXT_DEFAULT_SCROLL_ON_APPEND false
 
   //
+  // The auto_newline boolean will specify whether
+  // a newline is appended at the end of every printf
+  // call automatically for you ... as opposed to
+  // the more traditional printf where it is not.
+  //
+  // Our definition of newline is unixes, that is
+  // the single character of 0x0A, or \n.
+  //
+  bool m_auto_newline;
+#define CTEXT_DEFAULT_AUTO_NEWLINE false
+
+  //
   // The following function pointer, if defined
   // is executed when an event happens as defined
   // in the ctext_event enum above.

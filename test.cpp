@@ -50,7 +50,7 @@ int main(int argc, char **argv ){
 
   // add my handler
   config.m_on_event = my_event;
-  //config.m_bounding_box = false;
+  //config.m_bounding_box = true;
   config.m_buffer_size = 100;
   config.m_scroll_on_append = true;
   //config.m_do_wrap = true;

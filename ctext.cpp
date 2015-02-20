@@ -10,6 +10,7 @@ const ctext_config config_default = {
   .m_do_wrap = CTEXT_DEFAULT_DO_WRAP,
   .m_append_top = CTEXT_DEFAULT_APPEND_TOP,
   .m_scroll_on_append = CTEXT_DEFAULT_SCROLL_ON_APPEND,
+  .m_auto_newline = CTEXT_DEFAULT_AUTO_NEWLINE,
   .m_on_event = CTEXT_DEFAULT_ON_EVENT
 };
 
@@ -107,8 +108,8 @@ int8_t ctext::direct_scroll(int16_t x, int16_t y)
   {
     x = max(0, (int32_t)x);
     y = max(0, (int32_t)y);
-    x = min(x, this->m_max_x);
-    y = min(y, this->m_max_y);
+    x = min(x, (int16_t)(this->m_max_x - this->m_win_width));
+    y = min(y, (int16_t)(this->m_max_y - this->m_win_height));
   }
 
   this->m_pos_x = x;
@@ -228,6 +229,11 @@ int8_t ctext::vprintf(const char*format, va_list ap)
 
   memset(large_buffer, 0, sizeof(large_buffer));
   vsnprintf(large_buffer, CTEXT_BUFFER_SIZE, format, ap);
+
+  if(this->m_config.m_auto_newline && strlen(large_buffer) < (CTEXT_BUFFER_SIZE - 1))
+  {
+    sprintf(large_buffer + strlen(large_buffer), "\n");
+  }
 
   p_line = strtok(large_buffer, "\n");
   if(p_line)
