@@ -5,6 +5,7 @@
 
 #ifndef __83a9222a_c8b9_4f36_9721_5dfbaccb28d0_CTEXT
 #define __83a9222a_c8b9_4f36_9721_5dfbaccb28d0_CTEXT
+#define CTEXT_BUFFER_SIZE (8192)
 
 using namespace std;
 
@@ -222,7 +223,7 @@ class ctext
     // application to this library seamlessly.
     //
     int8_t printf(const char*format, ...);
-    int8_t vprintf(const char*format, va_list ap);
+    int8_t vprintf(const char*format, va_list ap = 0);
 
   private:
     int8_t rebuf();

@@ -13,8 +13,6 @@ const ctext_config config_default = {
   .m_on_event = CTEXT_DEFAULT_ON_EVENT
 };
 
-char large_buffer[8192] = {0};
-
 ctext::ctext(WINDOW *win, ctext_config *config)
 {
   this->m_win = win;
@@ -207,10 +205,15 @@ int cprintf(ctext*win, const char *format, ...)
 
 int8_t ctext::vprintf(const char*format, va_list ap)
 {
-  memset(large_buffer, 0, sizeof(large_buffer));
-  vsprintf(large_buffer, format, ap);
+  int8_t ret;
+  char *p_line;
+  char large_buffer[CTEXT_BUFFER_SIZE] = {0};
 
-  wstring wstr (large_buffer, large_buffer + strlen(large_buffer));
+  memset(large_buffer, 0, sizeof(large_buffer));
+  vsnprintf(large_buffer, CTEXT_BUFFER_SIZE, format, ap);
+
+  p_line = strtok(large_buffer, "\n");
+  wstring wstr (p_line, p_line + strlen(p_line));
   this->m_buffer.push_back(wstr);
 
   if (this->m_config.m_on_event)
@@ -227,7 +230,17 @@ int8_t ctext::vprintf(const char*format, va_list ap)
     this->direct_scroll(0, this->m_buffer.size() - this->m_win_height);
   }
 
-  return this->render();
+  ret = this->render();
+
+  while(p_line)
+  {
+    p_line = strtok(0, "\n");
+    if(p_line)
+    {
+      ret = this->printf(p_line);
+    }
+  }
+  return ret;
 }
 
 int8_t ctext::printf(const char*format, ...)
@@ -307,7 +320,7 @@ int8_t ctext::render()
     // Reset the offset.
     offset = start_char;
 
-    if(index < this->m_max_y && index >= 0)
+    if((index < this->m_max_y) && (index >= 0))
     {
       // We only index into the object if we have the
       // data to do so.

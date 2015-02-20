@@ -25,7 +25,7 @@ int8_t my_event(ctext *context, ctext_event event)
 }
 
 int main(int argc, char **argv ){
-  int speed = 150000;
+  int speed = 450000;
   int8_t x = 0;
   int amount = 0;
   locale::global(locale("en_US.utf8"));
@@ -49,19 +49,19 @@ int main(int argc, char **argv ){
 
   // add my handler
   config.m_on_event = my_event;
-  config.m_bounding_box = false;
-  config.m_buffer_size = 10;
+  //config.m_bounding_box = false;
+  config.m_buffer_size = 100;
   config.m_scroll_on_append = true;
-  config.m_do_wrap = true;
-  config.m_append_top = true;
+  //config.m_do_wrap = true;
+  //config.m_append_top = true;
   
   // set the config back
   ct.set_config(&config);
 
   for(x = 0; x < 15; x++) {
-    ct.printf("%c%c%c%c abb %x %d hello %d world", 
-        'a' + x, 'A' + x, 'd' + x, 'g' + x, 
-        x * 19, x, x);
+    ct.printf("%x%x%x\n%c%c%c", 
+        x, x, x, 
+        x + 'D', x + 'D', x + 'D');
     usleep(speed);
   }
 
