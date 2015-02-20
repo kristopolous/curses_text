@@ -211,6 +211,49 @@ int8_t ctext::rebuf()
   return this->direct_scroll(this->m_pos_x, this->m_pos_y);
 }
 
+void ctext::add_format_if_needed()
+{
+  attr_t attrs; 
+  int16_t color_pair;
+
+  if(!this->m_win) 
+  {
+    return;
+  }
+
+  if(this->m_buffer.empty())
+  {
+    return;
+  }
+
+  // get the most current row.
+  ctext_row p_row = this->m_buffer.back();
+
+  ctext_format p_format = {0,0,0};
+  if(!p_row.format.empty()) 
+  {
+    // and the most current format
+    p_format = p_row.format.back();
+  } 
+
+  wattr_get(this->m_win, &attrs, &color_pair, 0);
+
+  if(attrs != p_format.attrs || color_pair != p_format.color_pair)
+  {
+    // our properties have changed so we need to record this.
+    ctext_format new_format = 
+    {
+      // this is our offset
+      .offset = (int32_t)p_row.data.size(),
+
+      .attrs = attrs,
+      .color_pair = color_pair
+    };
+
+    p_row.format.push_back(new_format);
+  }
+}
+
 void ctext::add_row()
 {
   ctext_row row;
@@ -218,16 +261,21 @@ void ctext::add_row()
   // if there is an exsting line, then
   // we carry over the format from the
   // last line..
-  ctext_format p_format = ctext_format();
-
   if(!this->m_buffer.empty())
   {
     ctext_row p_row = this->m_buffer.back();
-    p_format = p_row.format.back();
-    // set the offset to the initial.
-    p_format.offset = 0;
-    row.format.push_back(p_format);
+
+    if(!p_row.format.empty()) 
+    {
+      ctext_format p_format = p_row.format.back();
+
+      // set the offset to the initial.
+      p_format.offset = 0;
+      row.format.push_back(p_format);
+    }
   }
+
+  row.data = wstring(L"");
 
   this->m_buffer.push_back(row);
 }

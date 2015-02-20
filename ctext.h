@@ -132,14 +132,14 @@ typedef struct ctext_config_struct ctext_config;
 
 typedef struct ctext_format_struct
 {
-  int32_t offset = 0;
-  attr_t attrs = 0;
-  int16_t color_pair = 0;
+  int32_t offset;
+  attr_t attrs;
+  int16_t color_pair;
 } ctext_format;
 
 typedef struct ctext_row_struct
 {
-  wstring data = wstring(L"");
+  wstring data;
   vector<ctext_format> format;
 } ctext_row;
 
@@ -253,6 +253,7 @@ class ctext
 
   private:
     void add_row();
+    void add_format_if_needed();
     int8_t rebuf();
     int8_t render();
     int8_t direct_scroll(int16_t x, int16_t y);

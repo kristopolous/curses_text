@@ -40,9 +40,6 @@ int main(int argc, char **argv ){
   local_win = newwin(9, 100, 5, 5);
   start_color();
 
-  init_pair(1,COLOR_WHITE, COLOR_BLUE);
-  wbkgd(local_win,COLOR_PAIR(1));
-
   ctext ct(local_win);
 
   // get the default config
