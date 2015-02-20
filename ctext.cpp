@@ -1,4 +1,5 @@
 #include "ctext.h"
+#include <iostream>
 #include <string.h>
 #include <algorithm>    // std::max
 
@@ -251,6 +252,7 @@ void ctext::add_format_if_needed()
     };
 
     p_row.format.push_back(new_format);
+    wattr_off(this->m_win, attrs, 0);
   }
 }
 
@@ -295,6 +297,8 @@ int8_t ctext::vprintf(const char*format, va_list ap)
   int8_t ret;
   char *p_line;
   char large_buffer[CTEXT_BUFFER_SIZE] = {0};
+
+  this->add_format_if_needed();
   ctext_row *p_row = &this->m_buffer.back();
 
   memset(large_buffer, 0, sizeof(large_buffer));
@@ -408,8 +412,10 @@ int8_t ctext::render()
   // start at the beginning of the buffer.
   int16_t index = this->m_pos_y;
   int16_t directionality = +1;
+  int16_t cutoff;
   wstring to_add;
   ctext_row *source;
+  vector<ctext_format>::iterator p_format;
 
   // if we are appending to the top then we start
   // at the end and change our directionality.
@@ -426,12 +432,16 @@ int8_t ctext::render()
 
     if((index < this->m_max_y) && (index >= 0))
     {
+      cutoff = this->m_win_width;
+
       // We only index into the object if we have the
       // data to do so.
       source = &this->m_buffer[index];
+      p_format = (*source).format.begin();
+
       if(offset < (*source).data.size())
       {
-        to_add = (*source).data.substr(offset, this->m_win_width);
+        to_add = (*source).data.substr(offset, cutoff);
       }
       else
       {

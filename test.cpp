@@ -60,6 +60,7 @@ int main(int argc, char **argv ){
   for(x = 0; x < 100; x++) 
   {
     init_pair(x, x, 0);
+    /*
     wattr_on(local_win, COLOR_PAIR(x), 0);
     waddch(local_win, 'a');
     wattr_get(local_win, &attrs, &color_pair_number, 0);
@@ -67,19 +68,19 @@ int main(int argc, char **argv ){
     wattr_off(local_win, COLOR_PAIR(x), 0);
     wrefresh(local_win);
     usleep(speed / 200);
+    */
   }
-    usleep(speed * 200);
-  endwin();
-  return 0;
 
 
   char buffer[32], *ptr;
   for(x = 0; x < 15; x++) {
+    wattr_on(local_win, COLOR_PAIR(x), 0);
     //memset(buffer, 0, 32);
     ct.printf("%x%x%x\n%c%c%c", 
         x, x, x, 
         x + 'D', x + 'D', x + 'D');
 
+    wattr_off(local_win, COLOR_PAIR(x), 0);
     usleep(speed / 15);
     /*
     for(ptr = buffer; *ptr; ptr++) {
