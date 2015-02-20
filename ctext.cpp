@@ -214,7 +214,21 @@ int8_t ctext::rebuf()
 void ctext::add_row()
 {
   ctext_row row;
-  row.data = wstring(L"");
+
+  // if there is an exsting line, then
+  // we carry over the format from the
+  // last line..
+  ctext_format p_format = ctext_format();
+
+  if(!this->m_buffer.empty())
+  {
+    ctext_row p_row = this->m_buffer.back();
+    p_format = p_row.format.back();
+    // set the offset to the initial.
+    p_format.offset = 0;
+    row.format.push_back(p_format);
+  }
+
   this->m_buffer.push_back(row);
 }
 
@@ -233,6 +247,7 @@ int8_t ctext::vprintf(const char*format, va_list ap)
   int8_t ret;
   char *p_line;
   char large_buffer[CTEXT_BUFFER_SIZE] = {0};
+  ctext_row *p_row = &this->m_buffer.back();
 
   memset(large_buffer, 0, sizeof(large_buffer));
   vsnprintf(large_buffer, CTEXT_BUFFER_SIZE, format, ap);
@@ -246,7 +261,7 @@ int8_t ctext::vprintf(const char*format, va_list ap)
   if(p_line)
   {
     wstring wstr (p_line, p_line + strlen(p_line));
-    this->m_buffer.back().data += wstr;
+    p_row->data += wstr;
   }
   // this case is a single new line.
   else

@@ -37,7 +37,7 @@ int main(int argc, char **argv ){
   WINDOW *local_win;
   ctext_config config;
 
-  local_win = newwin(9, 9, 5, 5);
+  local_win = newwin(9, 100, 5, 5);
   start_color();
 
   init_pair(1,COLOR_WHITE, COLOR_BLUE);
@@ -59,17 +59,37 @@ int main(int argc, char **argv ){
   // set the config back
   ct.set_config(&config);
 
+  attr_t attrs; short color_pair_number;
+  for(x = 0; x < 100; x++) 
+  {
+    init_pair(x, x, 0);
+    wattr_on(local_win, COLOR_PAIR(x), 0);
+    waddch(local_win, 'a');
+    wattr_get(local_win, &attrs, &color_pair_number, 0);
+    printf("%x %x", attrs, color_pair_number);
+    wattr_off(local_win, COLOR_PAIR(x), 0);
+    wrefresh(local_win);
+    usleep(speed / 200);
+  }
+    usleep(speed * 200);
+  endwin();
+  return 0;
+
+
   char buffer[32], *ptr;
   for(x = 0; x < 15; x++) {
-    memset(buffer, 0, 32);
-    sprintf(buffer, "%x%x%x\n%c%c%c", 
+    //memset(buffer, 0, 32);
+    ct.printf("%x%x%x\n%c%c%c", 
         x, x, x, 
         x + 'D', x + 'D', x + 'D');
 
+    usleep(speed / 15);
+    /*
     for(ptr = buffer; *ptr; ptr++) {
       ct.putchar((char)*ptr);
       usleep(speed / 15);
     }
+    */
   }
 
   for(x = 0; x < 5; x++) {
