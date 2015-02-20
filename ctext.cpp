@@ -31,6 +31,9 @@ ctext::ctext(WINDOW *win, ctext_config *config)
 
   this->m_max_x = 0;
   this->m_max_y = 0;
+
+  // initialized the buffer with the empty string
+  this->m_buffer.push_back(wstring(L""));
 }
 
 int8_t ctext::set_config(ctext_config *config)
@@ -214,7 +217,8 @@ int8_t ctext::vprintf(const char*format, va_list ap)
 
   p_line = strtok(large_buffer, "\n");
   wstring wstr (p_line, p_line + strlen(p_line));
-  this->m_buffer.push_back(wstr);
+  this->m_buffer.back() += wstr;
+  //this->m_buffer.push_back(wstr);
 
   if (this->m_config.m_on_event)
   {
@@ -237,6 +241,9 @@ int8_t ctext::vprintf(const char*format, va_list ap)
     p_line = strtok(0, "\n");
     if(p_line)
     {
+      // this means we have encountered a new line and must push our
+      // buffer forward - with the emptry string.
+      this->m_buffer.push_back(wstring(L""));
       ret = this->printf(p_line);
     }
   }
@@ -325,7 +332,14 @@ int8_t ctext::render()
       // We only index into the object if we have the
       // data to do so.
       source = &this->m_buffer[index];
-      to_add = (*source).substr(offset, this->m_win_width);
+      if(offset < (*source).size())
+      {
+        to_add = (*source).substr(offset, this->m_win_width);
+      }
+      else
+      {
+        to_add = wstring(L"");
+      }
       mvwaddwstr(this->m_win, line, 0, to_add.c_str());
 
       // if we are wrapping, then we do that here.
