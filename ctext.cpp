@@ -60,6 +60,11 @@ int8_t ctext::attach_curses_window(WINDOW *win)
   return this->render();
 }
 
+int32_t ctext::putchar(int32_t c)
+{
+  return this->printf("%c", c);
+}
+
 int16_t ctext::clear(int16_t amount)
 {
   int16_t ret = 0;
@@ -81,6 +86,15 @@ int16_t ctext::clear(int16_t amount)
   if (this->m_config.m_on_event)
   {
     this->m_config.m_on_event(this, CTEXT_CLEAR);
+  }
+
+  // We do the same logic when removing content
+  // .. perhaps forcing things down or upward
+  if(this->m_config.m_scroll_on_append)
+  {
+    this->get_win_size();
+    // now we force it.
+    this->direct_scroll(0, this->m_buffer.size() - this->m_win_height);
   }
 
   this->render();
@@ -216,9 +230,16 @@ int8_t ctext::vprintf(const char*format, va_list ap)
   vsnprintf(large_buffer, CTEXT_BUFFER_SIZE, format, ap);
 
   p_line = strtok(large_buffer, "\n");
-  wstring wstr (p_line, p_line + strlen(p_line));
-  this->m_buffer.back() += wstr;
-  //this->m_buffer.push_back(wstr);
+  if(p_line)
+  {
+    wstring wstr (p_line, p_line + strlen(p_line));
+    this->m_buffer.back() += wstr;
+  }
+  // this case is a single new line.
+  else
+  {
+    this->m_buffer.push_back(wstring(L""));
+  }
 
   if (this->m_config.m_on_event)
   {

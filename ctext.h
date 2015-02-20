@@ -222,6 +222,7 @@ class ctext
     // inside of an instance in order to migrate an existing
     // application to this library seamlessly.
     //
+    int32_t putchar(int32_t c);
     int8_t printf(const char*format, ...);
     int8_t vprintf(const char*format, va_list ap = 0);
 

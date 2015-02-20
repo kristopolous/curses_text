@@ -1,4 +1,5 @@
 #include <locale>
+#include <string.h>
 #include <unistd.h>
 #include <assert.h>
 #include "ctext.h"
@@ -58,11 +59,17 @@ int main(int argc, char **argv ){
   // set the config back
   ct.set_config(&config);
 
+  char buffer[32], *ptr;
   for(x = 0; x < 15; x++) {
-    ct.printf("%x%x%x\n%c%c%c", 
+    memset(buffer, 0, 32);
+    sprintf(buffer, "%x%x%x\n%c%c%c", 
         x, x, x, 
         x + 'D', x + 'D', x + 'D');
-    usleep(speed);
+
+    for(ptr = buffer; *ptr; ptr++) {
+      ct.putchar((char)*ptr);
+      usleep(speed / 15);
+    }
   }
 
   for(x = 0; x < 5; x++) {
