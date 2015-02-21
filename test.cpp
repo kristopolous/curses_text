@@ -80,13 +80,13 @@ int main(int argc, char **argv ){
 
   char buffer[32], *ptr;
   for(x = 0; x < 15; x++) {
-    wattr_on(local_win, COLOR_PAIR(x * 2), 0);
+    wattr_on(local_win, COLOR_PAIR(x * 3 + 2), 0);
     ct.printf("%x%x%x", x, x, x );
-    wattr_off(local_win, COLOR_PAIR(x * 2), 0);
+    wattr_off(local_win, COLOR_PAIR(x * 3 + 2), 0);
 
-    wattr_on(local_win, COLOR_PAIR(x * 2 + 1), 0);
-    ct.printf("%c%c%c|\n", x + 'A', x + 'A', x + 'A');
-    wattr_off(local_win, COLOR_PAIR(x * 2 + 1), 0);
+    wattr_on(local_win, COLOR_PAIR(x * 3 + 1), 0);
+    ct.printf("%c%c%c\n", x + 'A', x + 'A', x + 'A');
+    wattr_off(local_win, COLOR_PAIR(x * 3 + 1), 0);
     //usleep(speed / 15);
     /*
     for(ptr = buffer; *ptr; ptr++) {

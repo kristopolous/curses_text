@@ -503,6 +503,7 @@ int8_t ctext::render()
         // this is the number of characters we've placed into
         // the window.
         num_added = to_add.size();
+        buf_offset += num_added;
 
         // See if we need to reset our format
         if(b_format) 
@@ -515,7 +516,7 @@ int8_t ctext::render()
 
           // and push our format forward if necessary
           if( p_format != p_source->format.end() &&
-              (p_format + 1)->offset >= (buf_offset + num_added) 
+              (p_format + 1)->offset >= buf_offset 
             )
           {
             p_format ++;
@@ -523,7 +524,7 @@ int8_t ctext::render()
         }
 
         // if we are at the end of the string, we break out
-        if(p_source->data.size() <= buf_offset + num_added)
+        if(p_source->data.size() <= buf_offset)
         {
           break;
         }
@@ -547,10 +548,6 @@ int8_t ctext::render()
 
           // otherwise move our line forward
           line++;
-
-          // and the offset by the 
-          // number of characters we just added
-          buf_offset += num_added;
 
           // we reset the win_offset back to its
           // initial state
