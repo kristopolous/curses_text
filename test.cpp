@@ -74,20 +74,21 @@ int main(int argc, char **argv ){
 
   char buffer[32], *ptr;
   for(x = 0; x < 15; x++) {
-    wattr_on(local_win, COLOR_PAIR(x), 0);
+  //  wattr_on(local_win, COLOR_PAIR(x), 0);
     //memset(buffer, 0, 32);
-    ct.printf("%x%x%x\n%c%c%c", 
+   ct.printf("%x%x%x%c%c%c\n", 
         x, x, x, 
         x + 'D', x + 'D', x + 'D');
 
-    wattr_off(local_win, COLOR_PAIR(x), 0);
-    usleep(speed / 15);
+   // wattr_off(local_win, COLOR_PAIR(x), 0);
+    //usleep(speed / 15);
     /*
     for(ptr = buffer; *ptr; ptr++) {
       ct.putchar((char)*ptr);
       usleep(speed / 15);
     }
     */
+    usleep(speed);
   }
 
   for(x = 0; x < 5; x++) {

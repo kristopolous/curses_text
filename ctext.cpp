@@ -346,6 +346,10 @@ int8_t ctext::vprintf(const char*format, va_list ap)
       // buffer forward
       this->add_row();
       ret = this->printf(p_line);
+    } 
+    else 
+    {
+      this->add_row();
     }
   }
   return ret;
