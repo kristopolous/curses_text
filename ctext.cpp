@@ -228,13 +228,13 @@ void ctext::add_format_if_needed()
   }
 
   // get the most current row.
-  ctext_row p_row = this->m_buffer.back();
+  ctext_row *p_row = &this->m_buffer.back();
 
   ctext_format p_format = {0,0,0};
-  if(!p_row.format.empty()) 
+  if(!p_row->format.empty()) 
   {
     // and the most current format
-    p_format = p_row.format.back();
+    p_format = p_row->format.back();
   } 
 
   wattr_get(this->m_win, &attrs, &color_pair, 0);
@@ -245,13 +245,13 @@ void ctext::add_format_if_needed()
     ctext_format new_format = 
     {
       // this is our offset
-      .offset = (int32_t)p_row.data.size(),
+      .offset = (int32_t)p_row->data.size(),
 
       .attrs = attrs,
       .color_pair = color_pair
     };
 
-    p_row.format.push_back(new_format);
+    p_row->format.push_back(new_format);
     wattr_off(this->m_win, attrs, 0);
   }
 }
@@ -395,7 +395,7 @@ int8_t ctext::render()
   // or bottom we generate top to bottom.
 
   int16_t start_char = max(0, (int32_t)this->m_pos_x);
-  int16_t offset = start_char;
+  int16_t buf_offset = start_char;
   // the endchar will be in the substr
   
   //
@@ -413,8 +413,11 @@ int8_t ctext::render()
   int16_t index = this->m_pos_y;
   int16_t directionality = +1;
   int16_t cutoff;
+  int16_t num_added = 0;
+  int16_t win_offset = 0;
+  bool b_format = false;
   wstring to_add;
-  ctext_row *source;
+  ctext_row *p_source;
   vector<ctext_format>::iterator p_format;
 
   // if we are appending to the top then we start
@@ -427,50 +430,111 @@ int8_t ctext::render()
 
   while(line <= this->m_win_height)
   {
-    // Reset the offset.
-    offset = start_char;
-
     if((index < this->m_max_y) && (index >= 0))
     {
-      cutoff = this->m_win_width;
-
       // We only index into the object if we have the
       // data to do so.
-      source = &this->m_buffer[index];
-      p_format = (*source).format.begin();
+      p_source = &this->m_buffer[index];
+      p_format = p_source->format.begin();
 
-      if(offset < (*source).data.size())
+      // Reset the offset.
+      win_offset = 0;
+      buf_offset = start_char;
+
+      for(;;) 
       {
-        to_add = (*source).data.substr(offset, cutoff);
-      }
-      else
-      {
-        to_add = wstring(L"");
-      }
-      mvwaddwstr(this->m_win, line, 0, to_add.c_str());
+        // our initial cutoff is the remainder of window space
+        // - our start
+        cutoff = this->m_win_width - win_offset;
+        b_format = false;
 
-      // if we are wrapping, then we do that here.
-      while(
-        this->m_config.m_do_wrap && 
+        // if we have a format to account for and we haven't yet,
+        if(!p_source->format.empty() && p_format->offset >= buf_offset)
+        {
+          // then we add it 
+          wattr_on(this->m_win, p_format->color_pair, 0);
 
-        // if our string still exhausts our entire width
-        to_add.size() == this->m_win_width &&
+          // and tell ourselves below that we've done this.
+          b_format = true;
 
-        // and we haven't hit the bottom
-        line <= this->m_win_height
-      )
-      {
-        // move our line forward
-        line++;
+          // see if there's another cutoff point
+          if(p_format != p_source->format.end())
+          {
+            // if it's before our newline then we'll have to do something
+            // with with that.
+            //
+            // The first one is the characters we are to print this time,
+            // the second is how many characters we would have asked for
+            // if there was no format specified.
+            cutoff = min((p_format + 1)->offset - buf_offset, (int32_t)cutoff); 
+          }
+        }
 
-        // and the start_char
-        offset += this->m_win_width;
+        // if we can get that many characters than we grab them
+        // otherwise we do the empty string
+        to_add = (buf_offset < p_source->data.size()) ?
+          p_source->data.substr(buf_offset, cutoff) :
+          wstring(L"");
 
-        // substring into this character now at this advanced position
-        to_add = this->m_buffer[index].data.substr(offset, this->m_win_width);
+        mvwaddwstr(this->m_win, line, win_offset, to_add.c_str());
+
+        // this is the number of characters we've placed into
+        // the window.
+        num_added = to_add.size();
+
+        // See if we need to reset our format
+        if(b_format) 
+        {
+          // If the amount of data we tried to grab is less than
+          // the width of the window - win_offset then we know to
+          // turn off our attributes
+          wattr_off(this->m_win, p_format->color_pair, 0);
+
+          // and push our format forward if necessary
+          if( p_format != p_source->format.end() &&
+              (p_format + 1)->offset >= (buf_offset + num_added) 
+            )
+          {
+            p_format ++;
+          }
+        }
+
+        // if we are at the end of the string, we break out
+        if(p_source->data.size() == buf_offset + num_added)
+        {
+          break;
+        }
+
+        // otherwise, move win_offset forward
+        win_offset += num_added;
         
-        // and add it to the screen
-        mvwaddwstr(this->m_win, line, 0, to_add.c_str());
+        // otherwise, if we are wrapping, then we do that here.
+        if(win_offset == this->m_win_width)
+        {
+          // if we've hit the vertical bottom
+          // of our window then we break out
+          // of this
+          //
+          // otherwise if we are not wrapping then
+          // we also break out of this
+          if(line == this->m_win_height || !this->m_config.m_do_wrap )
+          {
+            break;
+          }
+
+          // otherwise move our line forward
+          line++;
+
+          // and the offset by the 
+          // number of characters we just added
+          buf_offset += num_added;
+
+          // we reset the win_offset back to its
+          // initial state
+          win_offset = 0;
+
+          // and we loop again.
+        }
       }
     }
     index += directionality;
