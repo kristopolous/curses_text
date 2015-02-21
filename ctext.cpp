@@ -458,7 +458,7 @@ int8_t ctext::render()
       p_format = p_source->format.begin();
 
       // Reset the offset.
-      win_offset = 0;
+      win_offset = -min(0, (int32_t)this->m_pos_x);
       buf_offset = start_char;
 
       for(;;) 
