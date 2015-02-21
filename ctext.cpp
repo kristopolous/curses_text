@@ -504,7 +504,7 @@ int8_t ctext::render()
         }
 
         // if we are at the end of the string, we break out
-        if(p_source->data.size() == buf_offset + num_added)
+        if(p_source->data.size() <= buf_offset + num_added)
         {
           break;
         }
