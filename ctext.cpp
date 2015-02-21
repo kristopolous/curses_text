@@ -391,6 +391,7 @@ int8_t ctext::render()
   attr_t res_attrs; 
   int16_t res_color_pair;
   wattr_get(this->m_win, &res_attrs, &res_color_pair, 0);
+  wattr_off(this->m_win, COLOR_PAIR(res_color_pair), 0);
   
   this->get_win_size();
 
