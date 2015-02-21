@@ -1,5 +1,4 @@
 #include "ctext.h"
-#include <iostream>
 #include <string.h>
 #include <algorithm>    // std::max
 
@@ -18,6 +17,8 @@ const ctext_config config_default = {
 ctext::ctext(WINDOW *win, ctext_config *config)
 {
   this->m_win = win;
+  this->m_debug = new ofstream();
+  this->m_debug->open("debug.txt");
   
   if(config) 
   {
@@ -252,13 +253,14 @@ void ctext::add_format_if_needed()
     };
 
     p_row->format.push_back(new_format);
-    wattr_off(this->m_win, attrs, 0);
+    wattr_off(this->m_win, COLOR_PAIR(color_pair), 0);
   }
 }
 
 void ctext::add_row()
 {
   ctext_row row;
+  row.format.clear();
 
   // if there is an exsting line, then
   // we carry over the format from the
@@ -269,11 +271,12 @@ void ctext::add_row()
 
     if(!p_row.format.empty()) 
     {
-      ctext_format p_format = p_row.format.back();
+      ctext_format p_format( *p_row.format.end() );
 
       // set the offset to the initial.
       p_format.offset = 0;
-      row.format.push_back(p_format);
+      *this->m_debug << "(" << p_format.color_pair << " " << p_format.attrs << ")" << endl;
+      //row.format.push_back(p_format);
     }
   }
 
@@ -432,6 +435,7 @@ int8_t ctext::render()
     index = this->m_pos_y + this->m_win_height - 1;
   }
 
+  *this->m_debug << "Start ---" << endl;
   while(line <= this->m_win_height)
   {
     if((index < this->m_max_y) && (index >= 0))
@@ -453,10 +457,11 @@ int8_t ctext::render()
         b_format = false;
 
         // if we have a format to account for and we haven't yet,
-        if(!p_source->format.empty() && p_format->offset >= buf_offset)
+        if(!p_source->format.empty() && p_format->offset <= buf_offset)
         {
           // then we add it 
-          wattr_on(this->m_win, p_format->color_pair, 0);
+          *this->m_debug << "on" << p_format->color_pair <<  " ";
+          wattr_on(this->m_win, COLOR_PAIR(p_format->color_pair),0);//p_format->color_pair), 0);
 
           // and tell ourselves below that we've done this.
           b_format = true;
@@ -481,6 +486,7 @@ int8_t ctext::render()
           wstring(L"");
 
         mvwaddwstr(this->m_win, line, win_offset, to_add.c_str());
+        *this->m_debug << "printed";
 
         // this is the number of characters we've placed into
         // the window.
@@ -492,7 +498,8 @@ int8_t ctext::render()
           // If the amount of data we tried to grab is less than
           // the width of the window - win_offset then we know to
           // turn off our attributes
-          wattr_off(this->m_win, p_format->color_pair, 0);
+          *this->m_debug << "off" << p_format->color_pair << endl;
+          wattr_off(this->m_win, COLOR_PAIR(p_format->color_pair),0);//p_format->color_pair), 0);
 
           // and push our format forward if necessary
           if( p_format != p_source->format.end() &&

@@ -1,3 +1,5 @@
+#include <fstream>
+#include <iostream>
 #include <string>
 #include <vector>
 #include <ncursesw/ncurses.h>
@@ -134,7 +136,7 @@ typedef struct ctext_format_struct
 {
   int32_t offset;
   attr_t attrs;
-  int16_t color_pair;
+  short color_pair;
 } ctext_format;
 
 typedef struct ctext_row_struct
@@ -271,6 +273,7 @@ class ctext
     void get_win_size();
     int16_t m_win_width;
     int16_t m_win_height;
+    ofstream *m_debug;
 };
 
 int cprintf(ctext*win, const char *format, ...);
