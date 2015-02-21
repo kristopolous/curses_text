@@ -51,7 +51,7 @@ int main(int argc, char **argv ){
   config.m_buffer_size = 100;
   config.m_scroll_on_append = true;
   //config.m_do_wrap = true;
-  config.m_append_top = true;
+  //config.m_append_top = true;
   
   // set the config back
   ct.set_config(&config);
@@ -80,13 +80,13 @@ int main(int argc, char **argv ){
 
   char buffer[32], *ptr;
   for(x = 0; x < 15; x++) {
-    wattr_on(local_win, COLOR_PAIR(x), 0);
-    //memset(buffer, 0, 32);
-   ct.printf("%x%x%x%c%c%c\n", 
-        x, x, x, 
-        x + 'D', x + 'D', x + 'D');
+    wattr_on(local_win, COLOR_PAIR(x * 2), 0);
+    ct.printf("%x%x%x", x, x, x );
 
-    wattr_off(local_win, COLOR_PAIR(x), 0);
+    //wattr_on(local_win, COLOR_PAIR(x * 2 + 1), 0);
+    ct.printf("%c%c%c|\n", x + 'A', x + 'A', x + 'A');
+    wattr_off(local_win, COLOR_PAIR(x * 2), 0);
+    //wattr_off(local_win, COLOR_PAIR(x * 2 + 1), 0);
     //usleep(speed / 15);
     /*
     for(ptr = buffer; *ptr; ptr++) {

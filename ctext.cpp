@@ -253,7 +253,7 @@ void ctext::add_format_if_needed()
     };
 
     p_row->format.push_back(new_format);
-    wattr_off(this->m_win, COLOR_PAIR(color_pair), 0);
+//    wattr_off(this->m_win, COLOR_PAIR(color_pair), 0);
   }
 }
 
@@ -297,6 +297,8 @@ int cprintf(ctext*win, const char *format, ...)
 
 int8_t ctext::vprintf(const char*format, va_list ap)
 {
+  // strtok is bullshit and this is needed.
+  bool should_newline = false;
   int8_t ret;
   char *p_line;
   char large_buffer[CTEXT_BUFFER_SIZE] = {0};
@@ -304,19 +306,23 @@ int8_t ctext::vprintf(const char*format, va_list ap)
   this->add_format_if_needed();
   ctext_row *p_row = &this->m_buffer.back();
 
-  memset(large_buffer, 0, sizeof(large_buffer));
+  memset(large_buffer, 0, CTEXT_BUFFER_SIZE);
   vsnprintf(large_buffer, CTEXT_BUFFER_SIZE, format, ap);
 
   if(this->m_config.m_auto_newline && strlen(large_buffer) < (CTEXT_BUFFER_SIZE - 1))
   {
     sprintf(large_buffer + strlen(large_buffer), "\n");
   }
+  should_newline = (large_buffer[strlen(large_buffer) - 1] == '\n');
 
   p_line = strtok(large_buffer, "\n");
   if(p_line)
   {
-    wstring wstr (p_line, p_line + strlen(p_line));
+    wstring wstr(p_line, p_line + strlen(p_line));
     p_row->data += wstr;
+
+    *this->m_debug << p_row->data.c_str() << endl;
+
   }
   // this case is a single new line.
   else
@@ -350,7 +356,7 @@ int8_t ctext::vprintf(const char*format, va_list ap)
       this->add_row();
       ret = this->printf(p_line);
     } 
-    else 
+    else if(should_newline)
     {
       this->add_row();
     }
@@ -372,6 +378,7 @@ int8_t ctext::printf(const char*format, ...)
 
 int8_t ctext::render() 
 {
+
   // Calculate the bounds of everything first.
   this->rebuf();
 
@@ -381,6 +388,10 @@ int8_t ctext::render()
     return -1;
   }
 
+  attr_t res_attrs; 
+  int16_t res_color_pair;
+  wattr_get(this->m_win, &res_attrs, &res_color_pair, 0);
+  
   this->get_win_size();
 
   //
@@ -435,7 +446,7 @@ int8_t ctext::render()
     index = this->m_pos_y + this->m_win_height - 1;
   }
 
-  *this->m_debug << "Start ---" << endl;
+  //*this->m_debug << "Start ---" << endl;
   while(line <= this->m_win_height)
   {
     if((index < this->m_max_y) && (index >= 0))
@@ -460,7 +471,7 @@ int8_t ctext::render()
         if(!p_source->format.empty() && p_format->offset <= buf_offset)
         {
           // then we add it 
-          *this->m_debug << "on" << p_format->color_pair <<  " ";
+          //*this->m_debug << "on" << p_format->color_pair <<  " ";
           wattr_on(this->m_win, COLOR_PAIR(p_format->color_pair),0);//p_format->color_pair), 0);
 
           // and tell ourselves below that we've done this.
@@ -486,7 +497,7 @@ int8_t ctext::render()
           wstring(L"");
 
         mvwaddwstr(this->m_win, line, win_offset, to_add.c_str());
-        *this->m_debug << "printed";
+        //*this->m_debug << "printed";
 
         // this is the number of characters we've placed into
         // the window.
@@ -498,7 +509,7 @@ int8_t ctext::render()
           // If the amount of data we tried to grab is less than
           // the width of the window - win_offset then we know to
           // turn off our attributes
-          *this->m_debug << "off" << p_format->color_pair << endl;
+          //*this->m_debug << "off" << p_format->color_pair << endl;
           wattr_off(this->m_win, COLOR_PAIR(p_format->color_pair),0);//p_format->color_pair), 0);
 
           // and push our format forward if necessary
@@ -553,4 +564,5 @@ int8_t ctext::render()
   }
 
   wrefresh(this->m_win);
+  wattr_set(this->m_win, res_attrs, res_color_pair, 0);
 }
