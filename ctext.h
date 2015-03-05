@@ -27,7 +27,7 @@ struct ctext_config_struct
   // in the ring-buffer.  
   //
   int16_t m_buffer_size;
-#define CTEXT_DEFAULT_BUFFER_SIZE 100
+#define CTEXT_DEFAULT_BUFFER_SIZE 1000
 
   //
   // The bounding box bool specifies whether
@@ -151,6 +151,7 @@ class ctext
 {
   public:
     ctext(WINDOW *win = 0, ctext_config *config = 0);
+    ~ctext();
 
     //
     // A ctext instance has a configuration specified through
@@ -261,6 +262,7 @@ class ctext
     int8_t direct_scroll(int16_t x, int16_t y);
 
     WINDOW *m_win;
+    WINDOW *m_pad;
     ctext_config m_config;
     ctext_buffer m_buffer;
 

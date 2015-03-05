@@ -14,12 +14,20 @@ const ctext_config config_default = {
   .m_on_event = CTEXT_DEFAULT_ON_EVENT
 };
 
+ctext::~ctext()
+{
+  if(this->m_pad)
+  {
+    delete this->m_pad;
+  }
+}
+
 ctext::ctext(WINDOW *win, ctext_config *config)
 {
   this->m_win = win;
   this->m_debug = new ofstream();
   this->m_debug->open("debug.txt");
-  
+
   if(config) 
   {
     memcpy(&this->m_config, config, sizeof(ctext_config));
@@ -29,6 +37,7 @@ ctext::ctext(WINDOW *win, ctext_config *config)
     memcpy(&this->m_config, &config_default, sizeof(ctext_config));
   }
 
+  this->m_pad = subpad(this->m_win, this->m_config.m_buffer_size, CTEXT_BUFFER_SIZE, 0, 0);
   this->m_pos_x = 0;
   this->m_pos_y = 0;
 
@@ -473,7 +482,7 @@ int8_t ctext::render()
         {
           // then we add it 
           //*this->m_debug << "on" << p_format->color_pair <<  " ";
-          wattr_on(this->m_win, COLOR_PAIR(p_format->color_pair),0);//p_format->color_pair), 0);
+          wattr_on(this->m_win, COLOR_PAIR(p_format->color_pair), 0);
 
           // and tell ourselves below that we've done this.
           b_format = true;
@@ -512,12 +521,10 @@ int8_t ctext::render()
           // the width of the window - win_offset then we know to
           // turn off our attributes
           //*this->m_debug << "off" << p_format->color_pair << endl;
-          wattr_off(this->m_win, COLOR_PAIR(p_format->color_pair),0);//p_format->color_pair), 0);
+          wattr_off(this->m_win, COLOR_PAIR(p_format->color_pair), 0);
 
           // and push our format forward if necessary
-          if( p_format != p_source->format.end() &&
-              (p_format + 1)->offset >= buf_offset 
-            )
+          if( p_format != p_source->format.end() && (p_format + 1)->offset >= buf_offset )
           {
             p_format ++;
           }

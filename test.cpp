@@ -91,7 +91,7 @@ int main(int argc, char **argv ){
     }
 
     wattr_on(local_win, COLOR_PAIR(x * 3 + 1), 0);
-    ct.printf("%c%c%c\n", x + 'A', x + 'A', x + 'A');
+    ct.printf("%c\n", x + 'A');
     wattr_off(local_win, COLOR_PAIR(x * 3 + 1), 0);
     //usleep(speed / 15);
     /*
@@ -100,7 +100,6 @@ int main(int argc, char **argv ){
       usleep(speed / 15);
     }
     */
-    usleep(speed / 10);
   }
 
   /*
