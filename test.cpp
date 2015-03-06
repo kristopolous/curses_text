@@ -100,7 +100,6 @@ int main(int argc, char **argv ){
       usleep(speed / 15);
     }
     */
-    usleep(speed / 10);
   }
 
   /*
