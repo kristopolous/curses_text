@@ -280,7 +280,7 @@ void ctext::add_row()
     }
   }
 
-  row.data = wstring(L"");
+  row.data = string("");
 
   this->m_buffer.push_back(row);
 }
@@ -318,7 +318,7 @@ int8_t ctext::vprintf(const char*format, va_list ap)
   p_line = strtok(large_buffer, "\n");
   if(p_line)
   {
-    wstring wstr(p_line, p_line + strlen(p_line));
+    string wstr(p_line, p_line + strlen(p_line));
     p_row->data += wstr;
 
     *this->m_debug << p_row->data.c_str() << endl;
@@ -435,7 +435,7 @@ int8_t ctext::render()
   int16_t num_added = 0;
   int16_t win_offset = 0;
   bool b_format = false;
-  wstring to_add;
+  string to_add;
   ctext_row *p_source;
   vector<ctext_format>::iterator p_format;
 
@@ -495,9 +495,9 @@ int8_t ctext::render()
         // otherwise we do the empty string
         to_add = (buf_offset < p_source->data.size()) ?
           p_source->data.substr(buf_offset, cutoff) :
-          wstring(L"");
+          string("");
 
-        mvwaddwstr(this->m_win, line, win_offset, to_add.c_str());
+        mvwaddstr(this->m_win, line, win_offset, to_add.c_str());
         //*this->m_debug << "printed";
 
         // this is the number of characters we've placed into
