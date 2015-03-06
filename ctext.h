@@ -2,7 +2,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#include <ncursesw/ncurses.h>
+#include <ncurses.h>
 #include <stdint.h>
 
 #ifndef __83a9222a_c8b9_4f36_9721_5dfbaccb28d0_CTEXT
@@ -141,7 +141,7 @@ typedef struct ctext_format_struct
 
 typedef struct ctext_row_struct
 {
-  wstring data;
+  string data;
   vector<ctext_format> format;
 } ctext_row;
 
