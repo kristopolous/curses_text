@@ -165,6 +165,18 @@ int16_t ctext::down(int16_t amount)
 	return this->scroll_to(this->m_pos_x, this->m_pos_y + amount);
 }
 
+int16_t ctext::page_down(int16_t page_count) 
+{
+  this->get_win_size();
+  return this->down(page_count * this->m_win_height);
+}
+
+int16_t ctext::page_up(int16_t page_count) 
+{
+  this->get_win_size();
+  return this->down(-page_count * this->m_win_height);
+}
+
 int16_t ctext::left(int16_t amount) 
 {
 	return this->right(-amount);

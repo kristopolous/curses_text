@@ -251,6 +251,15 @@ class ctext
 		int16_t left(int16_t amount = 1);
 		int16_t right(int16_t amount = 1);
 
+    // 
+    // Identical to the above functions but this
+    // time by an entire page of content (that
+    // is to say, the height of the current curses
+    // window.)
+    //
+		int16_t page_up(int16_t page_count = 1);
+		int16_t page_down(int16_t page_count = 1);
+
 		//
 		// printf is identical to printf(3) and can be called
 		// from the function at the end of this file, cprintf,
