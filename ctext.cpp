@@ -183,7 +183,7 @@ int8_t ctext::rebuf()
 {
 	this->get_win_size();
 
-	if(this->m_buffer.size() > this->m_config.m_buffer_size)
+	if((int16_t)this->m_buffer.size() > this->m_config.m_buffer_size)
 	{
 		this->m_buffer.erase(this->m_buffer.begin(), this->m_buffer.end() - this->m_config.m_buffer_size);
 	}
@@ -499,7 +499,7 @@ int8_t ctext::render()
 
 				// if we can get that many characters than we grab them
 				// otherwise we do the empty string
-				to_add = (buf_offset < p_source->data.size()) ?
+				to_add = (buf_offset < (int16_t)p_source->data.size()) ?
 					p_source->data.substr(buf_offset, cutoff) :
 					string("");
 
@@ -530,7 +530,7 @@ int8_t ctext::render()
 				}
 
 				// if we are at the end of the string, we break out
-				if(p_source->data.size() <= buf_offset)
+				if((int16_t)p_source->data.size() <= buf_offset)
 				{
 					break;
 				}
@@ -569,4 +569,6 @@ int8_t ctext::render()
 
 	wrefresh(this->m_win);
 	wattr_set(this->m_win, res_attrs, res_color_pair, 0);
+
+	return 0;
 }

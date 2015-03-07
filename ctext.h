@@ -253,11 +253,11 @@ class ctext
 		int8_t printf(const char*format, ...);
 		int8_t vprintf(const char*format, va_list ap = 0);
 
+		int8_t render();
 	private:
 		void add_row();
 		void add_format_if_needed();
 		int8_t rebuf();
-		int8_t render();
 		int8_t direct_scroll(int16_t x, int16_t y);
 
 		WINDOW *m_win;
