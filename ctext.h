@@ -212,7 +212,18 @@ class ctext
 		// The values from get_offset are complementary to those 
 		// of scroll_to
 		// 
+		// Returns 0 on success
+    //
 		int8_t get_offset(int16_t*x, int16_t*y); 
+
+		//
+		// get_offset_percent is a courtesy function returning
+		// a percentage value corresponding to the Y amount of 
+    // scroll within the window.
+		// 
+		// Returns 0 on success
+    //
+		int8_t get_offset_percent(float*percent);
 
 		// 
 		// get_size returns the outer text bounds length (x) and height
@@ -222,6 +233,8 @@ class ctext
 		// content in the buffer for x and the number of rows of content
 		// for y.
 		//
+		// Returns 0 on success
+    //
 		int8_t get_size(int16_t*x, int16_t*y);
 
 		//

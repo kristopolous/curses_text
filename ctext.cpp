@@ -139,6 +139,14 @@ int8_t ctext::get_offset(int16_t*x, int16_t*y)
 	return 0;
 }
 
+int8_t ctext::get_offset_percent(float*percent)
+{
+  this->get_win_size();
+  *percent = (float)(this->m_pos_y) / (this->m_max_y - this->m_win_height);
+
+	return 0;
+}
+
 int8_t ctext::get_size(int16_t*x, int16_t*y)
 {
 	*x = this->m_max_x;

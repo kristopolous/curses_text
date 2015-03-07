@@ -26,9 +26,11 @@ int8_t my_event(ctext *context, ctext_event event)
 }
 
 int main(int argc, char **argv ){
+  FILE *pDebug;
   int speed = 450000;
   int16_t x = 0;
   int amount = 0;
+  float perc;
   locale::global(locale("en_US.utf8"));
 
   initscr();  
@@ -36,6 +38,7 @@ int main(int argc, char **argv ){
   curs_set(0);
   WINDOW *local_win;
   ctext_config config;
+  pDebug = fopen("debug1.txt", "a");
 
   local_win = newwin(9, 100, 5, 5);
   start_color();
@@ -111,10 +114,15 @@ int main(int argc, char **argv ){
   */
 
   for(x = 0; x < 20; x++) {
+    ct.get_offset_percent(&perc);
+    fprintf(pDebug, "%f\n", perc);
+    fflush(pDebug);
+
     ct.left();
-    ct.up();
+    ct.down();
     usleep(speed);
   }
+  fclose(pDebug);
 
     /*
   for(x = 0; x < 18; x++) {
