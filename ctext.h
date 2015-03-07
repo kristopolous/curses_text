@@ -160,6 +160,8 @@ class ctext
 		// is made so that further modifications are not reflected
 		// in a previously instantiated instance.
 		//
+		// Returns 0 on success
+    //
 		int8_t set_config(ctext_config *config);
 
 		//
@@ -167,6 +169,8 @@ class ctext
 		// configuration of a ctext instance and to duplicate
 		// an existing configuration in a new instance.
 		//
+		// Returns 0 on success
+    //
 		int8_t get_config(ctext_config *config);
 
 		// 
@@ -178,6 +182,8 @@ class ctext
 		// If one is already attached, it will be detached and
 		// potentially orphaned.
 		//
+		// Returns 0 on success
+    //
 		int8_t attach_curses_window(WINDOW *win);
 
 		//
@@ -275,8 +281,40 @@ class ctext
 		int8_t printf(const char*format, ...);
 		int8_t vprintf(const char*format, va_list ap = 0);
 
-		int8_t render();
+    //
+    // nprintf is identical to the printf above EXCEPT for
+    // the fact that it doesn't refresh (redraw) the screen. 
+    //
+    // In order to do that, a redraw (below) must be called
+    // manually.
+    //
+		int8_t nprintf(const char*format, ...);
+
+    //
+    // under normal (printf) conditions, this does not
+    // need to be called explicitly and is instead called
+    // each time a printf is called.
+    //
+		int8_t redraw();
+
+    // 
+    // A naming convention inspired from php's ob_start,
+    // this function stops refreshing the screen until
+    // ob_end is called, upon which a refresh is done.
+    //
+    // Internally, a binary flag is flipped.  That is
+    // to say that multiple ob_start calls will only
+    // set the flag to TRUE, all to be undone by a single
+    // ob_end call.
+    //
+    // Returns 0 if the call was meaningful (that is, 
+    // it toggled state) - otherwise -1.
+    //
+    int8_t ob_start();
+    int8_t ob_end();
+
 	private:
+    bool m_do_draw;
 		void add_row();
 		void add_format_if_needed();
 		int8_t rebuf();

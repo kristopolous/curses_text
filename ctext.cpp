@@ -19,6 +19,7 @@ ctext::ctext(WINDOW *win, ctext_config *config)
 	this->m_win = win;
 	this->m_debug = new ofstream();
 	this->m_debug->open("debug.txt");
+  this->m_do_draw = true;
 	
 	if(config) 
 	{
@@ -48,7 +49,7 @@ int8_t ctext::set_config(ctext_config *config)
 		this->m_config.m_on_event(this, CTEXT_CONFIG);
 	}
 
-	return this->render();
+	return this->redraw();
 }
 
 int8_t ctext::get_config(ctext_config *config)
@@ -60,7 +61,7 @@ int8_t ctext::get_config(ctext_config *config)
 int8_t ctext::attach_curses_window(WINDOW *win)
 {
 	this->m_win = win;
-	return this->render();
+	return this->redraw();
 }
 
 int32_t ctext::putchar(int32_t c)
@@ -100,8 +101,23 @@ int16_t ctext::clear(int16_t amount)
 		this->direct_scroll(0, this->m_buffer.size() - this->m_win_height);
 	}
 
-	this->render();
+	this->redraw();
 	return ret;
+}
+
+int8_t ctext::ob_start()
+{
+  int8_t ret = this->m_do_draw;
+  this->m_do_draw = false;
+  return ret;
+}
+
+int8_t ctext::ob_end()
+{
+  int8_t ret = !this->m_do_draw;
+  this->m_do_draw = true;
+  this->redraw();
+  return ret;
 }
 
 int8_t ctext::direct_scroll(int16_t x, int16_t y)
@@ -128,7 +144,7 @@ int8_t ctext::direct_scroll(int16_t x, int16_t y)
 int8_t ctext::scroll_to(int16_t x, int16_t y)
 {
 	this->direct_scroll(x, y);
-	return this->render();
+	return this->redraw();
 }
 
 int8_t ctext::get_offset(int16_t*x, int16_t*y)
@@ -305,16 +321,6 @@ void ctext::add_row()
 	this->m_buffer.push_back(row);
 }
 
-int cprintf(ctext*win, const char *format, ...)
-{
-	int ret;
-	va_list args;
-	va_start(args, format);
-	ret = win->vprintf(format, args);
-	va_end(args);
-	return ret;
-}
-
 int8_t ctext::vprintf(const char*format, va_list ap)
 {
 	// strtok is bullshit and this is needed.
@@ -364,7 +370,7 @@ int8_t ctext::vprintf(const char*format, va_list ap)
 		this->direct_scroll(0, this->m_buffer.size() - this->m_win_height);
 	}
 
-	ret = this->render();
+	ret = this->redraw();
 
 	while(p_line)
 	{
@@ -384,6 +390,16 @@ int8_t ctext::vprintf(const char*format, va_list ap)
 	return ret;
 }
 
+int cprintf(ctext*win, const char *format, ...)
+{
+	int ret;
+	va_list args;
+	va_start(args, format);
+	ret = win->vprintf(format, args);
+	va_end(args);
+	return ret;
+}
+
 int8_t ctext::printf(const char*format, ...)
 {
 	int8_t ret;
@@ -396,14 +412,46 @@ int8_t ctext::printf(const char*format, ...)
 	return ret;
 }
 
+int8_t ctext::nprintf(const char*format, ...)
+{
+	int8_t ret;
+	va_list args;
+
+  // first turn off the rerdaw flag
+  this->ob_start();
+
+  // then call the variadic version
+
+	va_start(args, format);
+	ret = this->vprintf(format, args);
+
+	va_end(args);
+
+  //
+  // then manually untoggle the flag
+  // (this is necessary because ob_end
+  // does TWO things, breaking loads of
+  // anti-patterns I'm sure.)
+  //
+  this->m_do_draw = true;
+
+  return ret;
+}
+
 void next_line(WINDOW *win, int16_t*line)
 {
 	//wredrawln(win, max(*line - 1, 0), *line + 1);
 	(*line)++;
 }
 
-int8_t ctext::render() 
+int8_t ctext::redraw() 
 {
+  // Bail out if we aren't supposed to draw
+  // this time.
+  if(!this->m_do_draw)
+  {
+    return 0;
+  }
 
 	// Calculate the bounds of everything first.
 	this->rebuf();
