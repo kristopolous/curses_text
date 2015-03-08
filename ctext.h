@@ -7,7 +7,7 @@
 
 #ifndef __83a9222a_c8b9_4f36_9721_5dfbaccb28d0_CTEXT
 #define __83a9222a_c8b9_4f36_9721_5dfbaccb28d0_CTEXT
-#define CTEXT_BUFFER_SIZE (8192)
+#define CTEXT_BUFFER_SIZE (4096)
 
 using namespace std;
 
@@ -161,7 +161,7 @@ class ctext
 		// in a previously instantiated instance.
 		//
 		// Returns 0 on success
-    //
+		//
 		int8_t set_config(ctext_config *config);
 
 		//
@@ -170,7 +170,7 @@ class ctext
 		// an existing configuration in a new instance.
 		//
 		// Returns 0 on success
-    //
+		//
 		int8_t get_config(ctext_config *config);
 
 		// 
@@ -183,7 +183,7 @@ class ctext
 		// potentially orphaned.
 		//
 		// Returns 0 on success
-    //
+		//
 		int8_t attach_curses_window(WINDOW *win);
 
 		//
@@ -219,16 +219,16 @@ class ctext
 		// of scroll_to
 		// 
 		// Returns 0 on success
-    //
+		//
 		int8_t get_offset(int16_t*x, int16_t*y); 
 
 		//
 		// get_offset_percent is a courtesy function returning
 		// a percentage value corresponding to the Y amount of 
-    // scroll within the window.
+		// scroll within the window.
 		// 
 		// Returns 0 on success
-    //
+		//
 		int8_t get_offset_percent(float*percent);
 
 		// 
@@ -240,7 +240,7 @@ class ctext
 		// for y.
 		//
 		// Returns 0 on success
-    //
+		//
 		int8_t get_size(int16_t*x, int16_t*y);
 
 		//
@@ -257,12 +257,12 @@ class ctext
 		int16_t left(int16_t amount = 1);
 		int16_t right(int16_t amount = 1);
 
-    // 
-    // Identical to the above functions but this
-    // time by an entire page of content (that
-    // is to say, the height of the current curses
-    // window.)
-    //
+		// 
+		// Identical to the above functions but this
+		// time by an entire page of content (that
+		// is to say, the height of the current curses
+		// window.)
+		//
 		int16_t page_up(int16_t page_count = 1);
 		int16_t page_down(int16_t page_count = 1);
 
@@ -281,44 +281,50 @@ class ctext
 		int8_t printf(const char*format, ...);
 		int8_t vprintf(const char*format, va_list ap = 0);
 
-    //
-    // nprintf is identical to the printf above EXCEPT for
-    // the fact that it doesn't refresh (redraw) the screen. 
-    //
-    // In order to do that, a redraw (below) must be called
-    // manually.
-    //
+		//
+		// nprintf is identical to the printf above EXCEPT for
+		// the fact that it doesn't refresh (redraw) the screen. 
+		//
+		// In order to do that, a redraw (below) must be called
+		// manually.
+		//
 		int8_t nprintf(const char*format, ...);
 
-    //
-    // under normal (printf) conditions, this does not
-    // need to be called explicitly and is instead called
-    // each time a printf is called.
-    //
+		//
+		// under normal (printf) conditions, this does not
+		// need to be called explicitly and is instead called
+		// each time a printf is called.
+		//
 		int8_t redraw();
 
-    // 
-    // A naming convention inspired from php's ob_start,
-    // this function stops refreshing the screen until
-    // ob_end is called, upon which a refresh is done.
-    //
-    // Internally, a binary flag is flipped.  That is
-    // to say that multiple ob_start calls will only
-    // set the flag to TRUE, all to be undone by a single
-    // ob_end call.
-    //
-    // Returns 0 if the call was meaningful (that is, 
-    // it toggled state) - otherwise -1.
-    //
-    int8_t ob_start();
-    int8_t ob_end();
+		// 
+		// A naming convention inspired from php's ob_start,
+		// this function stops refreshing the screen until
+		// ob_end is called, upon which a refresh is done.
+		//
+		// Internally, a binary flag is flipped.	That is
+		// to say that multiple ob_start calls will only
+		// set the flag to TRUE, all to be undone by a single
+		// ob_end call.
+		//
+		// Returns 0 if the call was meaningful (that is, 
+		// it toggled state) - otherwise -1.
+		//
+		int8_t ob_start();
+		int8_t ob_end();
 
 	private:
-    bool m_do_draw;
+    void next_line(int16_t*line);
+		bool m_do_draw;
 		void add_row();
 		void add_format_if_needed();
 		int8_t rebuf();
 		int8_t direct_scroll(int16_t x, int16_t y);
+
+    bool cattr_on(attr_t attrs);
+    bool cattr_off();
+	  attr_t m_attrs; 
+    bool m_attrs_set;
 
 		WINDOW *m_win;
 		ctext_config m_config;

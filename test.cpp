@@ -53,7 +53,7 @@ int main(int argc, char **argv ){
   //config.m_bounding_box = true;
   config.m_buffer_size = 100;
   config.m_scroll_on_append = true;
-  //config.m_do_wrap = true;
+  config.m_do_wrap = true;
   //config.m_append_top = true;
   
   // set the config back
@@ -84,19 +84,20 @@ int main(int argc, char **argv ){
 
   char buffer[32], *ptr;
   int color = 0, round;
-  for(x = 0; x < 15; x++) {
+  for(x = 0; x < 20; x++) {
     for(round = 0; round < 9; round++) 
     {
       wattr_on(local_win, COLOR_PAIR(color % 200), 0);
-      ct.printf("%c", (color % 26) + 'A' );
-      wattr_off(local_win, COLOR_PAIR(color % 200), 0);
+      ct.printf("%c....", (color % 26) + 'A' );
+     wstandend(local_win);
+      //wattr_off(local_win, COLOR_PAIR(color % 200), 0);
       color++;
     }
 
     wattr_on(local_win, COLOR_PAIR(x * 3 + 1), 0);
     ct.printf("%c%c%c\n", x + 'A', x + 'A', x + 'A');
-    wattr_off(local_win, COLOR_PAIR(x * 3 + 1), 0);
-    //usleep(speed / 15);
+     wstandend(local_win);
+    usleep(speed / 5);
     /*
     for(ptr = buffer; *ptr; ptr++) {
       ct.putchar((char)*ptr);
@@ -105,13 +106,11 @@ int main(int argc, char **argv ){
     */
   }
 
-  /*
   for(x = 0; x < 10; x++) {
-    ct.right();
-    ct.down();
+    //ct.right();
+    ct.up();
     usleep(speed);
   }
-  */
 
   for(x = 0; x < 20; x++) {
     ct.get_offset_percent(&perc);

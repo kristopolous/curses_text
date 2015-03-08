@@ -19,7 +19,8 @@ ctext::ctext(WINDOW *win, ctext_config *config)
 	this->m_win = win;
 	this->m_debug = new ofstream();
 	this->m_debug->open("debug.txt");
-  this->m_do_draw = true;
+	this->m_do_draw = true;
+	this->m_attrs_set = false;
 	
 	if(config) 
 	{
@@ -107,17 +108,17 @@ int16_t ctext::clear(int16_t amount)
 
 int8_t ctext::ob_start()
 {
-  int8_t ret = this->m_do_draw;
-  this->m_do_draw = false;
-  return ret;
+	int8_t ret = this->m_do_draw;
+	this->m_do_draw = false;
+	return ret;
 }
 
 int8_t ctext::ob_end()
 {
-  int8_t ret = !this->m_do_draw;
-  this->m_do_draw = true;
-  this->redraw();
-  return ret;
+	int8_t ret = !this->m_do_draw;
+	this->m_do_draw = true;
+	this->redraw();
+	return ret;
 }
 
 int8_t ctext::direct_scroll(int16_t x, int16_t y)
@@ -157,8 +158,8 @@ int8_t ctext::get_offset(int16_t*x, int16_t*y)
 
 int8_t ctext::get_offset_percent(float*percent)
 {
-  this->get_win_size();
-  *percent = (float)(this->m_pos_y) / (this->m_max_y - this->m_win_height);
+	this->get_win_size();
+	*percent = (float)(this->m_pos_y) / (this->m_max_y - this->m_win_height);
 
 	return 0;
 }
@@ -178,19 +179,22 @@ int16_t ctext::up(int16_t amount)
 
 int16_t ctext::down(int16_t amount) 
 {
+  //wscrl(this->m_win, amount);
+	//wrefresh(this->m_win);
+
 	return this->scroll_to(this->m_pos_x, this->m_pos_y + amount);
 }
 
 int16_t ctext::page_down(int16_t page_count) 
 {
-  this->get_win_size();
-  return this->down(page_count * this->m_win_height);
+	this->get_win_size();
+	return this->down(page_count * this->m_win_height);
 }
 
 int16_t ctext::page_up(int16_t page_count) 
 {
-  this->get_win_size();
-  return this->down(-page_count * this->m_win_height);
+	this->get_win_size();
+	return this->down(-page_count * this->m_win_height);
 }
 
 int16_t ctext::left(int16_t amount) 
@@ -311,8 +315,8 @@ void ctext::add_row()
 
 			// set the offset to the initial.
 			p_format.offset = 0;
-			*this->m_debug << "(" << p_format.color_pair << " " << p_format.attrs << ")" << endl;
-			//row.format.push_back(p_format);
+			//*this->m_debug << "(" << p_format.color_pair << " " << p_format.attrs << ")" << endl;
+			row.format.push_back(p_format);
 		}
 	}
 
@@ -347,7 +351,7 @@ int8_t ctext::vprintf(const char*format, va_list ap)
 		string wstr(p_line, p_line + strlen(p_line));
 		p_row->data += wstr;
 
-		*this->m_debug << p_row->data.c_str() << endl;
+		//*this->m_debug << p_row->data.c_str() << endl;
 
 	}
 	// this case is a single new line.
@@ -417,41 +421,63 @@ int8_t ctext::nprintf(const char*format, ...)
 	int8_t ret;
 	va_list args;
 
-  // first turn off the rerdaw flag
-  this->ob_start();
+	// first turn off the rerdaw flag
+	this->ob_start();
 
-  // then call the variadic version
+	// then call the variadic version
 
 	va_start(args, format);
 	ret = this->vprintf(format, args);
 
 	va_end(args);
 
-  //
-  // then manually untoggle the flag
-  // (this is necessary because ob_end
-  // does TWO things, breaking loads of
-  // anti-patterns I'm sure.)
-  //
-  this->m_do_draw = true;
+	//
+	// then manually untoggle the flag
+	// (this is necessary because ob_end
+	// does TWO things, breaking loads of
+	// anti-patterns I'm sure.)
+	//
+	this->m_do_draw = true;
 
-  return ret;
+	return ret;
 }
 
-void next_line(WINDOW *win, int16_t*line)
+void ctext::next_line(int16_t*line)
 {
 	//wredrawln(win, max(*line - 1, 0), *line + 1);
+  //this->cattr_off();
 	(*line)++;
+}
+
+bool ctext::cattr_off()
+{
+  if(this->m_attrs_set)
+  {
+	  wattr_off(this->m_win, COLOR_PAIR(this->m_attrs), 0);
+    this->m_attrs_set = false;
+  }
+  return true;
+}
+
+bool ctext::cattr_on(attr_t attrs) 
+{
+  this->cattr_off();
+
+  wattr_on(this->m_win, COLOR_PAIR(attrs), 0);
+  this->m_attrs = attrs;
+  this->m_attrs_set = true;
+
+  return true;
 }
 
 int8_t ctext::redraw() 
 {
-  // Bail out if we aren't supposed to draw
-  // this time.
-  if(!this->m_do_draw)
-  {
-    return 0;
-  }
+	// Bail out if we aren't supposed to draw
+	// this time.
+	if(!this->m_do_draw)
+	{
+		return 0;
+	}
 
 	// Calculate the bounds of everything first.
 	this->rebuf();
@@ -542,12 +568,18 @@ int8_t ctext::redraw()
 				cutoff = this->m_win_width - win_offset;
 				b_format = false;
 
+        // move the cursor before doing anything.
+        //wmove(this->m_win, line, win_offset);
+
+        wstandend(this->m_win);
 				// if we have a format to account for and we haven't yet,
 				if(!p_source->format.empty() && p_format->offset <= buf_offset)
 				{
 					// then we add it 
 					//*this->m_debug << "on" << p_format->color_pair <<  " ";
-					wattr_on(this->m_win, COLOR_PAIR(p_format->color_pair),0);//p_format->color_pair), 0);
+          //mvwchgat
+					wattr_set(this->m_win, p_format->attrs, p_format->color_pair,0);//p_format->color_pair), 0);
+          //this->cattr_on(p_format->color_pair);//p_format->color_pair), 0);
 
 					// and tell ourselves below that we've done this.
 					b_format = true;
@@ -586,7 +618,6 @@ int8_t ctext::redraw()
 					// the width of the window - win_offset then we know to
 					// turn off our attributes
 					//*this->m_debug << "off" << p_format->color_pair << endl;
-					wattr_off(this->m_win, COLOR_PAIR(p_format->color_pair),0);//p_format->color_pair), 0);
 
 					// and push our format forward if necessary
 					if( p_format != p_source->format.end() &&
@@ -621,7 +652,7 @@ int8_t ctext::redraw()
 					}
 
 					// otherwise move our line forward
-					next_line(this->m_win, &line);
+					this->next_line(&line);
 
 					// we reset the win_offset back to its
 					// initial state
@@ -632,7 +663,7 @@ int8_t ctext::redraw()
 			}
 		}
 		index += directionality;
-		next_line(this->m_win, &line);
+		this->next_line(&line);
 	}
 
 	wrefresh(this->m_win);
