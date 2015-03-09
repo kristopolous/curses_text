@@ -21,6 +21,7 @@ ctext::ctext(WINDOW *win, ctext_config *config)
 	this->m_debug->open("debug.txt");
 	this->m_do_draw = true;
 	this->m_attrs_set = false;
+  clearok(this->m_win,true);
 	
 	if(config) 
 	{
@@ -491,7 +492,7 @@ int8_t ctext::redraw()
 	attr_t res_attrs; 
 	int16_t res_color_pair;
 	wattr_get(this->m_win, &res_attrs, &res_color_pair, 0);
-	wattr_off(this->m_win, COLOR_PAIR(res_color_pair), 0);
+  wstandend(this->m_win);
 	
 	this->get_win_size();
 
@@ -565,14 +566,24 @@ int8_t ctext::redraw()
 			{
 				// our initial cutoff is the remainder of window space
 				// - our start
-				cutoff = this->m_win_width - win_offset;
-				b_format = false;
+				cutoff = this->m_win_width - win_offset - 15;
+				//-b_format = false;
 
         // move the cursor before doing anything.
         //wmove(this->m_win, line, win_offset);
 
-        wstandend(this->m_win);
+        //-wstandend(this->m_win);
 				// if we have a format to account for and we haven't yet,
+        
+        if(win_offset > 0) 
+        {
+          wstandend(this->m_win);
+          wmove(this->m_win, line, 0);
+				  mvwaddstr(this->m_win, line, 0, " ");
+          wstandend(this->m_win);
+        }
+
+        /*
 				if(!p_source->format.empty() && p_format->offset <= buf_offset)
 				{
 					// then we add it 
@@ -596,12 +607,14 @@ int8_t ctext::redraw()
 						cutoff = min((p_format + 1)->offset - buf_offset, (int32_t)cutoff); 
 					}
 				}
+        */
 
 				// if we can get that many characters than we grab them
 				// otherwise we do the empty string
 				to_add = (buf_offset < (int16_t)p_source->data.size()) ?
 					p_source->data.substr(buf_offset, cutoff) :
 					string("");
+
 
 				mvwaddstr(this->m_win, line, win_offset, to_add.c_str());
 				//*this->m_debug << "printed";
@@ -612,6 +625,7 @@ int8_t ctext::redraw()
 				buf_offset += num_added;
 
 				// See if we need to reset our format
+        /*
 				if(b_format) 
 				{
 					// If the amount of data we tried to grab is less than
@@ -627,6 +641,7 @@ int8_t ctext::redraw()
 						p_format ++;
 					}
 				}
+        */
 
 				// if we are at the end of the string, we break out
 				if((int16_t)p_source->data.size() <= buf_offset)

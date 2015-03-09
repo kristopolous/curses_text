@@ -40,7 +40,7 @@ int main(int argc, char **argv ){
   ctext_config config;
   pDebug = fopen("debug1.txt", "a");
 
-  local_win = newwin(9, 100, 5, 5);
+  local_win = newwin(9, 15, 5, 5);
   start_color();
 
   ctext ct(local_win);
@@ -97,7 +97,7 @@ int main(int argc, char **argv ){
     wattr_on(local_win, COLOR_PAIR(x * 3 + 1), 0);
     ct.printf("%c%c%c\n", x + 'A', x + 'A', x + 'A');
      wstandend(local_win);
-    usleep(speed / 5);
+    usleep(speed / 15);
     /*
     for(ptr = buffer; *ptr; ptr++) {
       ct.putchar((char)*ptr);
@@ -108,6 +108,7 @@ int main(int argc, char **argv ){
 
   for(x = 0; x < 10; x++) {
     //ct.right();
+    ct.left();
     ct.up();
     usleep(speed);
   }
