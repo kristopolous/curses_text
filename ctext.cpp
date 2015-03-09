@@ -474,13 +474,14 @@ int8_t ctext::redraw()
 {
 	// Bail out if we aren't supposed to draw
 	// this time.
+	// Calculate the bounds of everything first.
+	this->rebuf();
 	if(!this->m_do_draw)
 	{
 		return 0;
 	}
 
-	// Calculate the bounds of everything first.
-	this->rebuf();
+	//*this->m_debug << "Start ---" << endl;
 
 	if(!this->m_win)
 	{

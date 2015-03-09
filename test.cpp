@@ -29,6 +29,7 @@ int main(int argc, char **argv ){
   FILE *pDebug;
   int speed = 450000;
   int16_t x = 0;
+  int16_t y = 0;
   int amount = 0;
   float perc;
   locale::global(locale("en_US.utf8"));
@@ -51,7 +52,7 @@ int main(int argc, char **argv ){
   // add my handler
   config.m_on_event = my_event;
   //config.m_bounding_box = true;
-  config.m_buffer_size = 100;
+  config.m_buffer_size = 20;
   config.m_scroll_on_append = true;
   config.m_do_wrap = true;
   //config.m_append_top = true;
@@ -84,7 +85,9 @@ int main(int argc, char **argv ){
 
   char buffer[32], *ptr;
   int color = 0, round;
-  for(x = 0; x < 20; x++) {
+  ct.ob_start();
+  for(y = 0; y < 150; y++) {
+    x = y % 50;
     for(round = 0; round < 9; round++) 
     {
       wattr_on(local_win, COLOR_PAIR(color % 200), 0);
@@ -97,7 +100,7 @@ int main(int argc, char **argv ){
     wattr_on(local_win, COLOR_PAIR(x * 3 + 1), 0);
     ct.printf("%c%c%c\n", x + 'A', x + 'A', x + 'A');
      wstandend(local_win);
-    usleep(speed / 5);
+    //usleep(speed / 50);
     /*
     for(ptr = buffer; *ptr; ptr++) {
       ct.putchar((char)*ptr);
@@ -105,8 +108,10 @@ int main(int argc, char **argv ){
     }
     */
   }
+  ct.ob_end();
+  ct.redraw();
 
-  for(x = 0; x < 10; x++) {
+  for(x = 0; x < 50; x++) {
     //ct.right();
     ct.up();
     usleep(speed);
