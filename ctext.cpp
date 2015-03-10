@@ -125,10 +125,10 @@ int8_t ctext::direct_scroll(int16_t x, int16_t y)
 {
 	if(this->m_config.m_bounding_box) 
 	{
-		x = max(0, (int32_t)x);
-		y = max(0, (int32_t)y);
 		x = min(x, (int16_t)(this->m_max_x - this->m_win_width));
 		y = min(y, (int16_t)(this->m_max_y - this->m_win_height));
+		x = max(0, (int32_t)x);
+		y = max(0, (int32_t)y);
 	}
 
 	this->m_pos_x = x;
@@ -179,9 +179,6 @@ int16_t ctext::up(int16_t amount)
 
 int16_t ctext::down(int16_t amount) 
 {
-	//wscrl(this->m_win, amount);
-	//wrefresh(this->m_win);
-
 	return this->scroll_to(this->m_pos_x, this->m_pos_y + amount);
 }
 
@@ -295,19 +292,18 @@ void ctext::add_format_if_needed()
 		// if the new thing we are adding has the same
 		// offset as the previous, then we dump the
 		// previous.
-		if(p_format.offset == new_format.offset)
+		if(p_format.offset == new_format.offset && !p_row->format.empty())
 		{
 			p_row->format.pop_back();
 		}
 		p_row->format.push_back(new_format);
-//		wattr_off(this->m_win, COLOR_PAIR(color_pair), 0);
 	}
+  wstandend(this->m_win);
 }
 
 void ctext::add_row()
 {
 	ctext_row row;
-	row.format.clear();
 
 	// if there is an exsting line, then
 	// we carry over the format from the
@@ -322,12 +318,11 @@ void ctext::add_row()
 
 			// set the offset to the initial.
 			p_format.offset = 0;
-			//*this->m_debug << "(" << p_format.color_pair << " " << p_format.attrs << ")" << endl;
-			row.format.push_back(p_format);
+//			row.format.push_back(p_format);
 		}
 	}
 
-	row.data = string("");
+	row.data = "";
 
 	this->m_buffer.push_back(row);
 }
