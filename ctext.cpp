@@ -292,6 +292,13 @@ void ctext::add_format_if_needed()
 			.color_pair = color_pair
 		};
 
+    // if the new thing we are adding has the same
+    // offset as the previous, then we dump the
+    // previous.
+    if(p_format.offset == new_format.offset)
+    {
+      p_row->format.pop_back();
+    }
 		p_row->format.push_back(new_format);
 //		wattr_off(this->m_win, COLOR_PAIR(color_pair), 0);
 	}
@@ -600,12 +607,17 @@ int8_t ctext::redraw()
 
 				// if we can get that many characters than we grab them
 				// otherwise we do the empty string
-				to_add = (buf_offset < (int16_t)p_source->data.size()) ?
-					p_source->data.substr(buf_offset, cutoff) :
-					string("");
+        if(buf_offset < (int16_t)p_source->data.size())
+        {
+				  to_add = p_source->data.substr(buf_offset, cutoff);
 
-				mvwaddstr(this->m_win, line, win_offset, to_add.c_str());
-				//*this->m_debug << "printed";
+				  mvwaddstr(this->m_win, line, win_offset, to_add.c_str());
+        }
+        else
+        {
+          to_add = "";
+        }
+				*this->m_debug << to_add << "||" << p_source->data << endl;
 
 				// this is the number of characters we've placed into
 				// the window.
@@ -630,7 +642,7 @@ int8_t ctext::redraw()
 				}
 
 				// if we are at the end of the string, we break out
-				if((int16_t)p_source->data.size() <= buf_offset)
+				if((int16_t)p_source->data.size() <= buf_offset || (num_added == 0 && p_source->data.size() > 0))
 				{
 					break;
 				}
