@@ -88,11 +88,12 @@ int main(int argc, char **argv ){
   ct.ob_start();
   for(y = 0; y < 150; y++) {
     x = y % 50;
+    ct.printf("%4d", y);
     for(round = 0; round < 9; round++) 
     {
       wattr_on(local_win, COLOR_PAIR(color % 200), 0);
       ct.printf("%c....", (color % 26) + 'A' );
-     wstandend(local_win);
+      wstandend(local_win);
       //wattr_off(local_win, COLOR_PAIR(color % 200), 0);
       color++;
     }
@@ -109,12 +110,13 @@ int main(int argc, char **argv ){
     */
   }
   ct.ob_end();
-  ct.redraw();
 
   for(x = 0; x < 50; x++) {
     //ct.right();
-    ct.up();
-    usleep(speed);
+    ct.page_up();
+    usleep(speed * 1);
+    ct.page_down();
+    usleep(speed * 1);
   }
 
   for(x = 0; x < 20; x++) {
@@ -123,7 +125,7 @@ int main(int argc, char **argv ){
     fflush(pDebug);
 
     ct.left();
-    ct.down();
+    ct.page_down();
     usleep(speed);
   }
   fclose(pDebug);
