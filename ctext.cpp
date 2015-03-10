@@ -617,7 +617,7 @@ int8_t ctext::redraw()
 				{
 					to_add = "";
 				}
-				*this->m_debug << to_add << "||" << p_source->data << endl;
+				//*this->m_debug << to_add << "||" << p_source->data << endl;
 
 				// this is the number of characters we've placed into
 				// the window.
