@@ -179,7 +179,7 @@ int16_t ctext::up(int16_t amount)
 
 int16_t ctext::down(int16_t amount) 
 {
-  //wscrl(this->m_win, amount);
+	//wscrl(this->m_win, amount);
 	//wrefresh(this->m_win);
 
 	return this->scroll_to(this->m_pos_x, this->m_pos_y + amount);
@@ -292,13 +292,13 @@ void ctext::add_format_if_needed()
 			.color_pair = color_pair
 		};
 
-    // if the new thing we are adding has the same
-    // offset as the previous, then we dump the
-    // previous.
-    if(p_format.offset == new_format.offset)
-    {
-      p_row->format.pop_back();
-    }
+		// if the new thing we are adding has the same
+		// offset as the previous, then we dump the
+		// previous.
+		if(p_format.offset == new_format.offset)
+		{
+			p_row->format.pop_back();
+		}
 		p_row->format.push_back(new_format);
 //		wattr_off(this->m_win, COLOR_PAIR(color_pair), 0);
 	}
@@ -452,29 +452,29 @@ int8_t ctext::nprintf(const char*format, ...)
 void ctext::next_line(int16_t*line)
 {
 	//wredrawln(win, max(*line - 1, 0), *line + 1);
-  //this->cattr_off();
+	//this->cattr_off();
 	(*line)++;
 }
 
 bool ctext::cattr_off()
 {
-  if(this->m_attrs_set)
-  {
-	  wattr_off(this->m_win, COLOR_PAIR(this->m_attrs), 0);
-    this->m_attrs_set = false;
-  }
-  return true;
+	if(this->m_attrs_set)
+	{
+		wattr_off(this->m_win, COLOR_PAIR(this->m_attrs), 0);
+		this->m_attrs_set = false;
+	}
+	return true;
 }
 
 bool ctext::cattr_on(attr_t attrs) 
 {
-  this->cattr_off();
+	this->cattr_off();
 
-  wattr_on(this->m_win, COLOR_PAIR(attrs), 0);
-  this->m_attrs = attrs;
-  this->m_attrs_set = true;
+	wattr_on(this->m_win, COLOR_PAIR(attrs), 0);
+	this->m_attrs = attrs;
+	this->m_attrs_set = true;
 
-  return true;
+	return true;
 }
 
 int8_t ctext::redraw() 
@@ -576,18 +576,18 @@ int8_t ctext::redraw()
 				cutoff = this->m_win_width - win_offset;
 				b_format = false;
 
-        // move the cursor before doing anything.
-        //wmove(this->m_win, line, win_offset);
+				// move the cursor before doing anything.
+				//wmove(this->m_win, line, win_offset);
 
-        wstandend(this->m_win);
+				wstandend(this->m_win);
 				// if we have a format to account for and we haven't yet,
 				if(!p_source->format.empty() && p_format->offset <= buf_offset)
 				{
 					// then we add it 
 					//*this->m_debug << "on" << p_format->color_pair <<  " ";
-          //mvwchgat
+					//mvwchgat
 					wattr_set(this->m_win, p_format->attrs, p_format->color_pair,0);//p_format->color_pair), 0);
-          //this->cattr_on(p_format->color_pair);//p_format->color_pair), 0);
+					//this->cattr_on(p_format->color_pair);//p_format->color_pair), 0);
 
 					// and tell ourselves below that we've done this.
 					b_format = true;
@@ -607,16 +607,16 @@ int8_t ctext::redraw()
 
 				// if we can get that many characters than we grab them
 				// otherwise we do the empty string
-        if(buf_offset < (int16_t)p_source->data.size())
-        {
-				  to_add = p_source->data.substr(buf_offset, cutoff);
+				if(buf_offset < (int16_t)p_source->data.size())
+				{
+					to_add = p_source->data.substr(buf_offset, cutoff);
 
-				  mvwaddstr(this->m_win, line, win_offset, to_add.c_str());
-        }
-        else
-        {
-          to_add = "";
-        }
+					mvwaddstr(this->m_win, line, win_offset, to_add.c_str());
+				}
+				else
+				{
+					to_add = "";
+				}
 				*this->m_debug << to_add << "||" << p_source->data << endl;
 
 				// this is the number of characters we've placed into
