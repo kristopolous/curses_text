@@ -91,7 +91,8 @@ int main(int argc, char **argv ){
   for(y = 0; y < 150; y++) {
     x = y % 50;
     ct.printf("%4d", y);
-    for(round = 0; round < 9; round++) 
+		/*
+    for(round = 0; round < 2; round++) 
     {
       wattr_on(local_win, COLOR_PAIR(color % 200), 0);
       ct.printf("%c", (color % 26) + 'A');//, testLen + ((color*4) %26) );
@@ -99,9 +100,10 @@ int main(int argc, char **argv ){
       //wattr_off(local_win, COLOR_PAIR(color % 200), 0);
       color++;
     }
+		*/
 
     wattr_on(local_win, COLOR_PAIR(x * 3 + 1), 0);
-    ct.printf("%c%c%c\n", x + 'A', x + 'A', x + 'A');
+    ct.printf("%c%c%c\nabcd\n", x + 'A', x + 'A', x + 'A');
      wstandend(local_win);
     //usleep(speed / 50);
     /*
