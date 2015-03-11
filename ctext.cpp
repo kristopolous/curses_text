@@ -18,10 +18,8 @@ ctext::ctext(WINDOW *win, ctext_config *config)
 {
 	this->m_win = win;
 
-	/*
 	this->m_debug = new ofstream();
-	this->m_debug->open("debug.txt");
-	*/
+	this->m_debug->open("debug1.txt");
 
 	this->m_do_draw = true;
 	this->m_attrs_set = false;
@@ -314,6 +312,7 @@ void ctext::add_format_if_needed()
 			.color_pair = color_pair
 		};
 
+	  *this->m_debug << new_format.offset << endl;
 		// if the new thing we are adding has the same
 		// offset as the previous, then we dump the
 		// previous.
@@ -339,11 +338,11 @@ void ctext::add_row()
 
 		if(!p_row.format.empty()) 
 		{
-			ctext_format p_format( *p_row.format.end() );
+			ctext_format p_format( p_row.format.back() );
 
 			// set the offset to the initial.
 			p_format.offset = 0;
-			// row.format.push_back(p_format);
+			row.format.push_back(p_format);
 		}
 	}
 
@@ -601,14 +600,14 @@ int8_t ctext::redraw()
 				{
 					// then we add it 
 					//mvwchgat
-					wattr_set(this->m_win, p_format->attrs, p_format->color_pair,0);//p_format->color_pair), 0);
+					wattr_set(this->m_win, p_format->attrs, p_format->color_pair, 0);//p_format->color_pair), 0);
 					//this->cattr_on(p_format->color_pair);//p_format->color_pair), 0);
 
 					// and tell ourselves below that we've done this.
 					b_format = true;
 
 					// see if there's another cutoff point
-					if(p_format != p_source->format.end())
+					if((p_format + 1) != p_source->format.end())
 					{
 						// If it's before our newline then we'll have to do something
 						// with with that.
@@ -646,11 +645,12 @@ int8_t ctext::redraw()
 					// turn off our attributes
 
 					// and push our format forward if necessary
-					if( p_format != p_source->format.end() &&
+					if( (p_format + 1) != p_source->format.end() &&
 							(p_format + 1)->offset >= buf_offset 
 						)
 					{
 						p_format ++;
+            *this->m_debug << p_format - p_source->format.begin() << " " << p_source->format.size() << " " << p_format->offset << " " << p_format->attrs << endl;
 					}
 				}
 
