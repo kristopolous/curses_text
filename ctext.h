@@ -267,6 +267,46 @@ class ctext
 		int16_t page_down(int16_t page_count = 1);
 
 		//
+		// The jump_to_first_line and jump_to_last_line
+		// can conveniently be mapped to home/end keys
+		// and do what they say under the following
+		// condition:
+		//
+		// 	If the bounding_box is set to true, 
+		// 	then the "first" and "last" line corresponds 
+		// 	to an entire screen full of data.
+		//
+		// 	If the bounding box is set to false, then
+		// 	the screen will be empty except for 1 line
+		// 	corresponding to the first or last line.
+		//
+		// 	That is to say that with a bounding box off,
+		// 	you'd see something like
+		//
+		//	+			+
+		//	 
+		//	
+		//	 xxxxx
+		//	+			+
+		//
+		//	when we are doing jump_to_first_line.
+		//
+		//	With a bounding_box on you'd see
+		//
+		//	+			+
+		//	 xxxxx
+		//	 xx
+		//	 xxx
+		//	+			+
+		//
+		// The return code is how many vertical lines
+		// were scrolled in order to accomplish the 
+		// action.
+		//
+		int16_t jump_to_first_line();
+		int16_t jump_to_last_line();
+
+		//
 		// printf is identical to printf(3) and can be called
 		// from the function at the end of this file, cprintf,
 		// with an instance variable.  It places text into the

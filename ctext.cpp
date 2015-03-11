@@ -17,8 +17,12 @@ const ctext_config config_default = {
 ctext::ctext(WINDOW *win, ctext_config *config)
 {
 	this->m_win = win;
+
+#ifdef CURSES_CTEXT_DEBUG
 	this->m_debug = new ofstream();
 	this->m_debug->open("debug.txt");
+#endif
+
 	this->m_do_draw = true;
 	this->m_attrs_set = false;
 	
@@ -182,6 +186,26 @@ int16_t ctext::down(int16_t amount)
 	return this->scroll_to(this->m_pos_x, this->m_pos_y + amount);
 }
 
+int16_t ctext::jump_to_first_line()
+{
+	int16_t current_line = this->m_pos_y;
+
+	// now we try to scroll above the first
+	// line.  the bounding box rule will
+	// take care of the differences for us.
+	this->scroll_to(this->m_pos_x, 0 - this->m_win_height + 1);
+
+	return current_line - this->m_pos_y;
+}
+
+int16_t ctext::jump_to_last_line()
+{
+	int16_t current_line = this->m_pos_y;
+
+	this->scroll_to(this->m_pos_x, this->m_max_y + this->m_win_height - 1);
+	return current_line - this->m_pos_y;
+}
+
 int16_t ctext::page_down(int16_t page_count) 
 {
 	this->get_win_size();
@@ -318,7 +342,7 @@ void ctext::add_row()
 
 			// set the offset to the initial.
 			p_format.offset = 0;
-//			row.format.push_back(p_format);
+			row.format.push_back(p_format);
 		}
 	}
 
@@ -352,9 +376,6 @@ int8_t ctext::vprintf(const char*format, va_list ap)
 	{
 		string wstr(p_line, p_line + strlen(p_line));
 		p_row->data += wstr;
-
-		//*this->m_debug << p_row->data.c_str() << endl;
-
 	}
 	// this case is a single new line.
 	else
@@ -483,8 +504,6 @@ int8_t ctext::redraw()
 		return 0;
 	}
 
-	//*this->m_debug << "Start ---" << endl;
-
 	if(!this->m_win)
 	{
 		// Not doing anything without a window.
@@ -550,7 +569,6 @@ int8_t ctext::redraw()
 		index = this->m_pos_y + this->m_win_height - 1;
 	}
 
-	//*this->m_debug << "Start ---" << endl;
 	while(line <= this->m_win_height)
 	{
 		if((index < this->m_max_y) && (index >= 0))
@@ -579,7 +597,6 @@ int8_t ctext::redraw()
 				if(!p_source->format.empty() && p_format->offset <= buf_offset)
 				{
 					// then we add it 
-					//*this->m_debug << "on" << p_format->color_pair <<  " ";
 					//mvwchgat
 					wattr_set(this->m_win, p_format->attrs, p_format->color_pair,0);//p_format->color_pair), 0);
 					//this->cattr_on(p_format->color_pair);//p_format->color_pair), 0);
@@ -612,7 +629,6 @@ int8_t ctext::redraw()
 				{
 					to_add = "";
 				}
-				//*this->m_debug << to_add << "||" << p_source->data << endl;
 
 				// this is the number of characters we've placed into
 				// the window.
@@ -625,7 +641,6 @@ int8_t ctext::redraw()
 					// If the amount of data we tried to grab is less than
 					// the width of the window - win_offset then we know to
 					// turn off our attributes
-					//*this->m_debug << "off" << p_format->color_pair << endl;
 
 					// and push our format forward if necessary
 					if( p_format != p_source->format.end() &&
