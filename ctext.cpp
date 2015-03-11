@@ -277,7 +277,7 @@ int8_t ctext::rebuf()
 void ctext::add_format_if_needed()
 {
 	attr_t attrs; 
-	int32_t color_pair;
+	int16_t color_pair;
 
 	if(!this->m_win) 
 	{
@@ -488,7 +488,7 @@ int8_t ctext::redraw()
 	}
 
 	attr_t res_attrs; 
-	int32_t res_color_pair;
+	int16_t res_color_pair;
 	wattr_get(this->m_win, &res_attrs, &res_color_pair, 0);
 	wattr_off(this->m_win, COLOR_PAIR(res_color_pair), 0);
 	

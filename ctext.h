@@ -136,7 +136,7 @@ typedef struct ctext_format_struct
 {
 	int32_t offset;
 	attr_t attrs;
-	short color_pair;
+	int16_t color_pair;
 } ctext_format;
 
 typedef struct ctext_row_struct
