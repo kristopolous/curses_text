@@ -2,6 +2,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <assert.h>
+#define CURSES_CTEXT_DEBUG 1
 #include "ctext.h"
 
 int8_t my_event(ctext *context, ctext_event event)
@@ -41,7 +42,7 @@ int main(int argc, char **argv ){
   ctext_config config;
   pDebug = fopen("debug1.txt", "a");
 
-  local_win = newwin(9, 100, 5, 5);
+  local_win = newwin(9, 60, 5, 5);
   start_color();
 
   ctext ct(local_win);
@@ -51,8 +52,8 @@ int main(int argc, char **argv ){
 
   // add my handler
   config.m_on_event = my_event;
-  //config.m_bounding_box = true;
-  config.m_buffer_size = 20;
+  config.m_bounding_box = false;
+  config.m_buffer_size = 200;
   config.m_scroll_on_append = true;
   config.m_do_wrap = true;
   //config.m_append_top = true;
@@ -110,6 +111,13 @@ int main(int argc, char **argv ){
     */
   }
   ct.ob_end();
+
+  for(x = 0; x < 50; x++) {
+			ct.jump_to_last_line();
+			usleep(speed * 1);
+			ct.jump_to_first_line();
+			usleep(speed * 1);
+	}
 
   for(x = 0; x < 50; x++) {
     //ct.right();

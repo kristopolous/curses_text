@@ -18,10 +18,10 @@ ctext::ctext(WINDOW *win, ctext_config *config)
 {
 	this->m_win = win;
 
-#ifdef CURSES_CTEXT_DEBUG
+	/*
 	this->m_debug = new ofstream();
 	this->m_debug->open("debug.txt");
-#endif
+	*/
 
 	this->m_do_draw = true;
 	this->m_attrs_set = false;
@@ -191,7 +191,7 @@ int16_t ctext::jump_to_first_line()
 	int16_t current_line = this->m_pos_y;
 
 	// now we try to scroll above the first
-	// line.  the bounding box rule will
+	// line.	the bounding box rule will
 	// take care of the differences for us.
 	this->scroll_to(this->m_pos_x, 0 - this->m_win_height + 1);
 
@@ -202,7 +202,8 @@ int16_t ctext::jump_to_last_line()
 {
 	int16_t current_line = this->m_pos_y;
 
-	this->scroll_to(this->m_pos_x, this->m_max_y + this->m_win_height - 1);
+	this->get_win_size();
+	this->scroll_to(this->m_pos_x, this->m_max_y - 1);
 	return current_line - this->m_pos_y;
 }
 
@@ -264,7 +265,7 @@ int8_t ctext::rebuf()
 		}
 	}
  
-	this->m_max_y = this->m_buffer.size();
+	this->m_max_y = this->m_buffer.size() - 1;
 	
 	//
 	// Since we've changed the bounding box of the content we have to
@@ -322,7 +323,7 @@ void ctext::add_format_if_needed()
 		}
 		p_row->format.push_back(new_format);
 	}
-  wstandend(this->m_win);
+	wstandend(this->m_win);
 }
 
 void ctext::add_row()
@@ -530,7 +531,7 @@ int8_t ctext::redraw()
 	// to avoid linear updating or paging.
 	//	... it's 2015 after all.
 	//
-	werase(this->m_win);
+	wclear(this->m_win);
 
 	// Regardless of whether this is append to top
 	// or bottom we generate top to bottom.
