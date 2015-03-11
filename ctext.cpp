@@ -343,7 +343,7 @@ void ctext::add_row()
 
 			// set the offset to the initial.
 			p_format.offset = 0;
-			row.format.push_back(p_format);
+			// row.format.push_back(p_format);
 		}
 	}
 
@@ -531,7 +531,7 @@ int8_t ctext::redraw()
 	// to avoid linear updating or paging.
 	//	... it's 2015 after all.
 	//
-	wclear(this->m_win);
+	werase(this->m_win);
 
 	// Regardless of whether this is append to top
 	// or bottom we generate top to bottom.
@@ -572,6 +572,8 @@ int8_t ctext::redraw()
 
 	while(line <= this->m_win_height)
 	{
+		wredrawln(this->m_win, line, 1);
+		
 		if((index < this->m_max_y) && (index >= 0))
 		{
 			// We only index into the object if we have the
@@ -608,7 +610,7 @@ int8_t ctext::redraw()
 					// see if there's another cutoff point
 					if(p_format != p_source->format.end())
 					{
-						// if it's before our newline then we'll have to do something
+						// If it's before our newline then we'll have to do something
 						// with with that.
 						//
 						// The first one is the characters we are to print this time,
@@ -631,7 +633,7 @@ int8_t ctext::redraw()
 					to_add = "";
 				}
 
-				// this is the number of characters we've placed into
+				// This is the number of characters we've placed into
 				// the window.
 				num_added = to_add.size();
 				buf_offset += num_added;
