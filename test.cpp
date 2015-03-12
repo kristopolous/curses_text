@@ -5,27 +5,6 @@
 #define CURSES_CTEXT_DEBUG 1
 #include "ctext.h"
 
-int8_t my_event(ctext *context, ctext_event event)
-{
-  /*
-  switch(event)
-  {
-    case CTEXT_SCROLL:
-      printf("< Scroll >");
-      break;
-
-    case CTEXT_CLEAR:
-      printf("< Clear >");
-      break;
-
-    case CTEXT_DATA:
-      printf("< Data >");
-      break;
-  }
-  */
-  return 0;
-}
-
 int main(int argc, char **argv ){
   FILE *pDebug;
   int speed = 450000;
@@ -51,7 +30,6 @@ int main(int argc, char **argv ){
   ct.get_config(&config);
 
   // add my handler
-  config.m_on_event = my_event;
   config.m_bounding_box = false;
   config.m_buffer_size = 100;
   config.m_scroll_on_append = true;
