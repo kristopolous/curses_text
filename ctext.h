@@ -1,3 +1,4 @@
+#ifndef _WIN32
 #include <fstream>
 #include <iostream>
 #include <string>
@@ -380,3 +381,5 @@ class ctext
 int cprintf(ctext*win, const char *format, ...);
 
 #endif
+
+#endif // _WIN32

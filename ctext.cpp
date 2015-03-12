@@ -4,6 +4,8 @@
 
 using namespace std;
 
+#ifndef _WIN32
+
 const ctext_config config_default = {
 	.m_buffer_size = CTEXT_DEFAULT_BUFFER_SIZE,
 	.m_bounding_box = CTEXT_DEFAULT_BOUNDING_BOX,
@@ -671,3 +673,5 @@ int8_t ctext::redraw()
 
 	return 0;
 }
+
+#endif // _WIN32
