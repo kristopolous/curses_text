@@ -112,6 +112,9 @@ int main(int argc, char **argv ){
       usleep(speed / 15);
     }
     */
+		 if(y % 9 == 0) {
+				 ct.clear();
+		 }
   }
   ct.ob_end();
 
