@@ -53,7 +53,7 @@ int main(int argc, char **argv ){
   // add my handler
   config.m_on_event = my_event;
   config.m_bounding_box = false;
-  config.m_buffer_size = 200;
+  config.m_buffer_size = 100;
   config.m_scroll_on_append = true;
   config.m_do_wrap = true;
   //config.m_append_top = true;
@@ -88,7 +88,9 @@ int main(int argc, char **argv ){
 	char testLen[] = "abcdefghijklmnopqrstuvwxyz";
   int color = 0, round;
   ct.ob_start();
-  for(y = 0; y < 150; y++) {
+  for(y = 0; y < 250; y++) {
+    fprintf(pDebug, "%d\n", ct.available_rows());
+		fflush(pDebug);
     x = y % 50;
     ct.printf("%4d", y);
 		/*
@@ -112,9 +114,6 @@ int main(int argc, char **argv ){
       usleep(speed / 15);
     }
     */
-		 if(y % 9 == 0) {
-				 ct.clear();
-		 }
   }
   ct.ob_end();
 
