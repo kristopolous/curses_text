@@ -348,7 +348,8 @@ int8_t ctext::vprintf(const char*format, va_list ap)
 	}
 
 	p_line = large_buffer;
-	do {
+	do 
+  {
 		n_line = next_type(p_line, '\n');
 
 		string wstr(p_line, n_line - p_line);
@@ -359,7 +360,8 @@ int8_t ctext::vprintf(const char*format, va_list ap)
 			p_row = this->add_row();
 		}
 		p_line = n_line + 1;
-	} while (*n_line);
+	} 
+  while (*n_line);
 
 	
 	// Since we are adding content we need to see if we are
