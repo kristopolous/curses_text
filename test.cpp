@@ -34,6 +34,7 @@ int main(int argc, char **argv ){
   config.m_buffer_size = 100;
   config.m_scroll_on_append = true;
   config.m_do_wrap = true;
+	config.m_auto_newline = true;
   //config.m_append_top = true;
   
   // set the config back
