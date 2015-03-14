@@ -37,6 +37,7 @@ ctext::ctext(WINDOW *win, ctext_config *config)
 
 	this->m_pos_x = 0;
 	this->m_pos_y = 0;
+	this->m_pos_inrow = 0;
 
 	this->m_max_y = 0;
 
@@ -124,7 +125,8 @@ int8_t ctext::direct_scroll(int32_t x, int32_t y)
 	// at all.
 	if(this->m_config.m_do_wrap)
 	{
-		x = 0;
+		this->m_pos_x = 0;
+		this->m_pos_inrow = x;
 	}
 
 	this->m_pos_x = x;
@@ -174,9 +176,67 @@ int32_t ctext::up(int32_t amount)
 	return this->down(-amount);
 }
 
+int32_t ctext::page_down(int32_t page_count) 
+{
+	this->get_win_size();
+	return this->down(page_count * this->m_win_height);
+}
+
+int32_t ctext::page_up(int32_t page_count) 
+{
+	this->get_win_size();
+	return this->down(-page_count * this->m_win_height);
+}
+
 int32_t ctext::down(int32_t amount) 
 {
-	return this->scroll_to(this->m_pos_x, this->m_pos_y + amount);
+	// There's a request to make the bounding
+	// box scroll only partial. What a pain.
+	if(this->m_config.m_bounding_box)
+	{
+		int32_t new_y = this->m_pos_y;
+		int32_t new_offset = this->m_pos_inrow;
+		ctext_row *p_row = &this->m_buffer[this->m_pos_y];	
+
+		this->get_win_size();
+
+		while(amount > 0)
+		{
+			new_offset += this->m_win_width;
+			amount --;
+			if(new_offset > p_row->data.size())
+			{
+				if(new_y + 1 >= this->m_buffer.size())
+				{
+					break;
+				}
+				new_offset = 0;
+				new_y++;
+				p_row = &this->m_buffer[new_y];
+			}
+		} 
+
+		while(amount < 0)
+		{
+			new_offset -= this->m_win_width;
+			amount ++;
+			if(new_offset < 0)
+			{
+				if(new_y - 1 <= 0)
+				{
+					break;
+				}
+				new_y--;
+				p_row = &this->m_buffer[new_y];
+				new_offset = p_row->data.size() - p_row->data.size() % this->m_win_width;
+			}
+		}
+		return this->scroll_to(new_offset, new_y);
+	}
+	else
+	{
+		return this->scroll_to(this->m_pos_x, this->m_pos_y + amount);
+	}
 }
 
 int32_t ctext::jump_to_first_line()
@@ -198,18 +258,6 @@ int32_t ctext::jump_to_last_line()
 	this->get_win_size();
 	this->scroll_to(this->m_pos_x, this->m_max_y - 1);
 	return current_line - this->m_pos_y;
-}
-
-int32_t ctext::page_down(int32_t page_count) 
-{
-	this->get_win_size();
-	return this->down(page_count * this->m_win_height);
-}
-
-int32_t ctext::page_up(int32_t page_count) 
-{
-	this->get_win_size();
-	return this->down(-page_count * this->m_win_height);
 }
 
 int32_t ctext::left(int32_t amount) 
