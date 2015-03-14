@@ -21,7 +21,7 @@ int main(int argc, char **argv ){
   ctext_config config;
   pDebug = fopen("debug1.txt", "a");
 
-  local_win = newwin(9, 60, 5, 5);
+  local_win = newwin(9, 30, 5, 5);
   start_color();
 
   ctext ct(local_win);
@@ -30,9 +30,9 @@ int main(int argc, char **argv ){
   ct.get_config(&config);
 
   // add my handler
-  config.m_bounding_box = false;
+  config.m_bounding_box = true;
   config.m_buffer_size = 100;
-  config.m_scroll_on_append = true;
+  //config.m_scroll_on_append = true;
   config.m_do_wrap = true;
 	config.m_auto_newline = true;
   //config.m_append_top = true;
@@ -64,9 +64,9 @@ int main(int argc, char **argv ){
   }
 
   char buffer[32], *ptr;
-	char testLen[] = "abcdefghijklmnopqrstuvwxyz";
+	char testLen[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
   int color = 0, round;
-//  ct.ob_start();
+  ct.ob_start();
   for(y = 0; y < 250; y++) {
     fprintf(pDebug, "%d\n", ct.available_rows());
 		fflush(pDebug);
@@ -84,9 +84,9 @@ int main(int argc, char **argv ){
 		*/
 
     wattr_on(local_win, COLOR_PAIR(x * 3 + 1), 0);
-    ct.printf("%c%c%c\nabcd\nefgh\nWXYZ\nABCD", x + 'A', x + 'A', x + 'A');
+    ct.printf("%05d::%s%c%c%c", x,testLen, x + 'A', x + 'A', x + 'A');
      wstandend(local_win);
-    usleep(speed );
+    //usleep(speed );
     /*
     for(ptr = buffer; *ptr; ptr++) {
       ct.putchar((char)*ptr);
@@ -94,16 +94,17 @@ int main(int argc, char **argv ){
     }
     */
   }
-//  ct.ob_end();
+  ct.ob_end();
 
   for(x = 0; x < 50; x++) {
     //ct.right();
-    ct.up();
+    ct.down();
     usleep(speed * 1);
     //ct.page_down();
     //usleep(speed * 1);
   }
 
+	/*
   for(x = 0; x < 20; x++) {
     ct.get_offset_percent(&perc);
     fprintf(pDebug, "%f\n", perc);
@@ -115,7 +116,6 @@ int main(int argc, char **argv ){
   }
   fclose(pDebug);
 
-    /*
   for(x = 0; x < 18; x++) {
     amount = ct.clear(1);
     if(x < 15) 

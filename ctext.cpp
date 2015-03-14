@@ -127,6 +127,7 @@ int8_t ctext::direct_scroll(int32_t x, int32_t y)
 	{
 		this->m_pos_x = 0;
 		this->m_pos_inrow = x;
+		x = 0;
 	}
 
 	this->m_pos_x = x;
@@ -192,7 +193,7 @@ int32_t ctext::down(int32_t amount)
 {
 	// There's a request to make the bounding
 	// box scroll only partial. What a pain.
-	if(this->m_config.m_bounding_box)
+	if(this->m_config.m_do_wrap)
 	{
 		int32_t new_y = this->m_pos_y;
 		int32_t new_offset = this->m_pos_inrow;
@@ -297,7 +298,14 @@ int8_t ctext::rebuf()
 	// issue a rescroll on exactly our previous parameters. This may
 	// force us inward or may retain our position.
 	// 
-	return this->direct_scroll(this->m_pos_x, this->m_pos_y);
+	if(!this->m_config.m_do_wrap)
+	{
+		return this->direct_scroll(this->m_pos_x, this->m_pos_y);
+	}
+	else
+	{
+		return this->direct_scroll(this->m_pos_inrow, this->m_pos_y);
+	}
 }
 
 void ctext::add_format_if_needed()
@@ -494,6 +502,7 @@ int8_t ctext::redraw()
 
 	attr_t res_attrs; 
 	int16_t res_color_pair;
+	bool is_first_line = true;
 	wattr_get(this->m_win, &res_attrs, &res_color_pair, 0);
 	wattr_off(this->m_win, COLOR_PAIR(res_color_pair), 0);
 	
@@ -566,6 +575,11 @@ int8_t ctext::redraw()
 			win_offset = -min(0, (int32_t)this->m_pos_x);
 			buf_offset = start_char;
 
+			if(this->m_config.m_do_wrap && is_first_line)
+			{
+				buf_offset = this->m_pos_inrow;
+			}
+
 			for(;;) 
 			{
 				// our initial cutoff is the remainder of window space
@@ -603,6 +617,7 @@ int8_t ctext::redraw()
 					to_add = p_source->data.substr(buf_offset, cutoff);
 
 					mvwaddstr(this->m_win, line, win_offset, to_add.c_str());
+					is_first_line = false;
 				}
 				else
 				{
