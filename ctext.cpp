@@ -205,9 +205,9 @@ int32_t ctext::down(int32_t amount)
 		{
 			new_offset += this->m_win_width;
 			amount --;
-			if(new_offset > p_row->data.size())
+			if(new_offset > (int32_t)p_row->data.size())
 			{
-				if(new_y + 1 >= this->m_buffer.size())
+				if(new_y + 1 >= (int32_t)this->m_buffer.size())
 				{
 					break;
 				}
