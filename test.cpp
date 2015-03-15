@@ -67,9 +67,9 @@ int main(int argc, char **argv ){
 	char testLen[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
   int color = 0, round;
   ct.ob_start();
+		fprintf(pDebug, "\n\n ");
   for(y = 0; y < 250; y++) {
-    fprintf(pDebug, "%d\n", ct.available_rows());
-		fflush(pDebug);
+    //fprintf(pDebug, "%d\n", ct.available_rows());
     x = y % 50;
     //ct.printf("%4d", y);
 		/*
@@ -83,7 +83,9 @@ int main(int argc, char **argv ){
     }
 		*/
 
-    wattr_on(local_win, COLOR_PAIR(x * 3 + 1), 0);
+		fprintf(pDebug, "%04x ", COLOR_PAIR(x * 3 + 1));
+		fflush(pDebug);
+    wattr_on(local_win, COLOR_PAIR(x * 3 + 1) | A_REVERSE, 0);
     ct.printf("%05d::%s%c%c%c", x,testLen, x + 'A', x + 'A', x + 'A');
      wstandend(local_win);
     //usleep(speed );

@@ -39,6 +39,8 @@ ctext::ctext(WINDOW *win, ctext_config *config)
 	this->m_pos_y = 0;
 	this->m_pos_inrow = 0;
 
+	this->m_attr_mask = 0;
+
 	this->m_max_y = 0;
 
 	// initialized the buffer with the empty row
@@ -481,6 +483,180 @@ int8_t ctext::nprintf(const char*format, ...)
 	this->m_do_draw = true;
 
 	return ret;
+}
+
+//
+// redraw partial assumes that setup is already done and all
+// the preprocessing is figured out.
+int8_t ctext::redraw_partial(int32_t start_x, int32_t start_y, int32_t end_x, int32_t end_y)
+{
+	bool is_first_line = true;
+	
+	// Regardless of whether this is append to top
+	// or bottom we generate top to bottom.
+
+	int32_t start_char = max(0, this->m_pos_x);
+	int32_t buf_offset = start_char;
+	// the endchar will be in the substr
+	
+	//
+	// We start as m_pos_y in our list and move up to
+	// m_pos_y + m_win_height except in the case of 
+	// wrap around.  Because of this special case,
+	// we compute when to exit slightly differently.
+	//
+	// This is the current line of output, which stays
+	// below m_win_height
+	//
+	int32_t line = 0;
+
+	// start at the beginning of the buffer.
+	int32_t index = this->m_pos_y;
+	int32_t directionality = +1;
+	int32_t cutoff;
+	int32_t num_added = 0;
+	int32_t win_offset = 0;
+	bool b_format = false;
+	string to_add;
+	ctext_row *p_source;
+	vector<ctext_format>::iterator p_format;
+
+	// if we are appending to the top then we start
+	// at the end and change our directionality.
+	if(this->m_config.m_append_top)
+	{
+		directionality = -1;
+		index = this->m_pos_y + this->m_win_height - 1;
+	}
+
+	while(line <= this->m_win_height)
+	{
+		wredrawln(this->m_win, line, 1);
+		
+		if((index < this->m_max_y) && (index >= 0))
+		{
+			// We only index into the object if we have the
+			// data to do so.
+			p_source = &this->m_buffer[index];
+			p_format = p_source->format.begin();
+
+			// Reset the offset.
+			win_offset = -min(0, (int32_t)this->m_pos_x);
+			buf_offset = start_char;
+
+			if(is_first_line)
+			{
+				if(this->m_config.m_do_wrap)
+				{
+					buf_offset = this->m_pos_inrow;
+				}
+				buf_offset += start_x;
+			}
+
+			for(;;) 
+			{
+				// our initial cutoff is the remainder of window space
+				// - our start
+				cutoff = this->m_win_width - win_offset;
+				b_format = false;
+
+				wstandend(this->m_win);
+				// if we have a format to account for and we haven't yet,
+				if(!p_source->format.empty() && p_format->offset <= buf_offset)
+				{
+					// then we add it 
+					wattr_set(this->m_win, p_format->attrs | this->m_attr_mask, p_format->color_pair, 0);
+
+					// and tell ourselves below that we've done this.
+					b_format = true;
+
+					// see if there's another cutoff point
+					if((p_format + 1) != p_source->format.end())
+					{
+						// If it's before our newline then we'll have to do something
+						// with with that.
+						//
+						// The first one is the characters we are to print this time,
+						// the second is how many characters we would have asked for
+						// if there was no format specified.
+						cutoff = min((p_format + 1)->offset - buf_offset, cutoff); 
+					}
+				}
+
+				// if we can get that many characters than we grab them
+				// otherwise we do the empty string
+				if(buf_offset < (int32_t)p_source->data.size())
+				{
+					to_add = p_source->data.substr(buf_offset, cutoff);
+
+					mvwaddstr(this->m_win, line, win_offset, to_add.c_str());
+					is_first_line = false;
+				}
+				else
+				{
+					to_add = "";
+				}
+
+				// This is the number of characters we've placed into
+				// the window.
+				num_added = to_add.size();
+				buf_offset += num_added;
+
+				// See if we need to reset our format
+				if(b_format) 
+				{
+					// If the amount of data we tried to grab is less than
+					// the width of the window - win_offset then we know to
+					// turn off our attributes
+
+					// and push our format forward if necessary
+					if( (p_format + 1) != p_source->format.end() &&
+							(p_format + 1)->offset >= buf_offset 
+						)
+					{
+						p_format ++;
+					}
+				}
+
+				// if we are at the end of the string, we break out
+				if((int32_t)p_source->data.size() <= buf_offset || (num_added == 0 && p_source->data.size() > 0))
+				{
+					break;
+				}
+
+				// otherwise, move win_offset forward
+				win_offset += num_added;
+				
+				// otherwise, if we are wrapping, then we do that here.
+				if(win_offset == this->m_win_width)
+				{
+					// if we've hit the vertical bottom
+					// of our window then we break out
+					// of this
+					//
+					// otherwise if we are not wrapping then
+					// we also break out of this
+					if(line == this->m_win_height || !this->m_config.m_do_wrap)
+					{
+						break;
+					}
+
+					// otherwise move our line forward
+					line++;
+
+					// we reset the win_offset back to its
+					// initial state
+					win_offset = 0;
+
+					// and we loop again.
+				}
+			}
+		}
+		index += directionality;
+		line++;
+	}
+
+	return 0;
 }
 
 int8_t ctext::redraw() 

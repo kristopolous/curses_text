@@ -344,12 +344,16 @@ class ctext
 		int8_t ob_start();
 		int8_t ob_end();
 
+		int8_t highlight(int32_t row, int32_t col, int32_t len);
+
 	private:
+		int8_t redraw_partial(int32_t start_x, int32_t start_y, int32_t end_x, int32_t end_y);
 		bool m_do_draw;
 		ctext_row* add_row();
 		void add_format_if_needed();
 		int8_t rebuf();
 		int8_t direct_scroll(int32_t x, int32_t y);
+		attr_t m_attr_mask;
 
 		WINDOW *m_win;
 		ctext_config m_config;
