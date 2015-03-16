@@ -485,16 +485,52 @@ int8_t ctext::nprintf(const char*format, ...)
 	return ret;
 }
 
+int8_t ctext::redraw_partial_test()
+{
+	attr_t res_attrs; 
+	int16_t res_color_pair;
+	int32_t x, y;
+
+	this->get_win_size();
+	wattr_get(this->m_win, &res_attrs, &res_color_pair, 0);
+	wattr_off(this->m_win, COLOR_PAIR(res_color_pair), 0);
+	
+	this->rebuf();
+	werase(this->m_win);
+
+	for(y = 0; y < this->m_win_height; y++)
+	{
+		for(x = 0; x < this->m_win_width; x++)
+		{
+			this->m_attr_mask ^= A_REVERSE;
+			this->redraw_partial(x, y, x + 1, y);
+		}
+	}
+
+	wrefresh(this->m_win);
+	wattr_set(this->m_win, res_attrs, res_color_pair, 0);
+
+	return 0;
+}
+
 //
 // redraw partial assumes that setup is already done and all
 // the preprocessing is figured out.
+//
 int8_t ctext::redraw_partial(int32_t start_x, int32_t start_y, int32_t end_x, int32_t end_y)
 {
 	bool is_first_line = true;
+	bool is_last_line = false;
 	
 	// Regardless of whether this is append to top
 	// or bottom we generate top to bottom.
 
+	start_y = max(start_y, 0);
+	start_x = max(start_x, 0);
+	end_y = min(end_y, this->m_win_height);
+	end_x = min(end_x, this->m_win_width);
+
+	int32_t l_end_x;
 	int32_t start_char = max(0, this->m_pos_x);
 	int32_t buf_offset = start_char;
 	// the endchar will be in the substr
@@ -508,29 +544,30 @@ int8_t ctext::redraw_partial(int32_t start_x, int32_t start_y, int32_t end_x, in
 	// This is the current line of output, which stays
 	// below m_win_height
 	//
-	int32_t line = 0;
+	int32_t line = start_y;
 
 	// start at the beginning of the buffer.
-	int32_t index = this->m_pos_y;
-	int32_t directionality = +1;
+	int32_t index = this->m_pos_y + start_y;
 	int32_t cutoff;
 	int32_t num_added = 0;
-	int32_t win_offset = 0;
+	int32_t win_offset = start_x;
 	bool b_format = false;
 	string to_add;
 	ctext_row *p_source;
 	vector<ctext_format>::iterator p_format;
-
-	// if we are appending to the top then we start
-	// at the end and change our directionality.
-	if(this->m_config.m_append_top)
+	
+	while(line <= end_y)
 	{
-		directionality = -1;
-		index = this->m_pos_y + this->m_win_height - 1;
-	}
+		if(line == end_y)
+		{
+			is_last_line = true;
+			l_end_x = min(end_x, this->m_win_width);
+		}
+		else
+		{
+			l_end_x = this->m_win_width;
+		}
 
-	while(line <= this->m_win_height)
-	{
 		wredrawln(this->m_win, line, 1);
 		
 		if((index < this->m_max_y) && (index >= 0))
@@ -550,14 +587,17 @@ int8_t ctext::redraw_partial(int32_t start_x, int32_t start_y, int32_t end_x, in
 				{
 					buf_offset = this->m_pos_inrow;
 				}
+				// on the first line we push both the
+				// win offset and the buf offset forward.
 				buf_offset += start_x;
+				win_offset += start_x;
 			}
 
 			for(;;) 
 			{
 				// our initial cutoff is the remainder of window space
 				// - our start
-				cutoff = this->m_win_width - win_offset;
+				cutoff = l_end_x - win_offset;
 				b_format = false;
 
 				wstandend(this->m_win);
@@ -628,7 +668,7 @@ int8_t ctext::redraw_partial(int32_t start_x, int32_t start_y, int32_t end_x, in
 				win_offset += num_added;
 				
 				// otherwise, if we are wrapping, then we do that here.
-				if(win_offset == this->m_win_width)
+				if(win_offset == l_end_x)
 				{
 					// if we've hit the vertical bottom
 					// of our window then we break out
@@ -636,7 +676,7 @@ int8_t ctext::redraw_partial(int32_t start_x, int32_t start_y, int32_t end_x, in
 					//
 					// otherwise if we are not wrapping then
 					// we also break out of this
-					if(line == this->m_win_height || !this->m_config.m_do_wrap)
+					if(line == end_y || !this->m_config.m_do_wrap)
 					{
 						break;
 					}
@@ -652,7 +692,7 @@ int8_t ctext::redraw_partial(int32_t start_x, int32_t start_y, int32_t end_x, in
 				}
 			}
 		}
-		index += directionality;
+		index++;
 		line++;
 	}
 
