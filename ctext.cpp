@@ -191,50 +191,61 @@ int32_t ctext::page_up(int32_t page_count)
 	return this->down(-page_count * this->m_win_height);
 }
 
+int8_t ctext::y_scroll_calculate(int32_t amount, int32_t *x, int32_t *y)
+{
+	int32_t new_y = this->m_pos_y;
+	int32_t new_offset = this->m_pos_inrow;
+	ctext_row *p_row = &this->m_buffer[this->m_pos_y];	
+
+	this->get_win_size();
+
+	while(amount > 0)
+	{
+		new_offset += this->m_win_width;
+		amount --;
+		if(new_offset > (int32_t)p_row->data.size())
+		{
+			if(new_y + 1 >= (int32_t)this->m_buffer.size())
+			{
+				break;
+			}
+			new_offset = 0;
+			new_y++;
+			p_row = &this->m_buffer[new_y];
+		}
+	} 
+
+	while(amount < 0)
+	{
+		new_offset -= this->m_win_width;
+		amount ++;
+		if(new_offset < 0)
+		{
+			if(new_y - 1 < 0)
+			{
+				break;
+			}
+			new_y--;
+			p_row = &this->m_buffer[new_y];
+			new_offset = p_row->data.size() - p_row->data.size() % this->m_win_width;
+		}
+	}
+	*x = new_offset;
+	*y = new_y;
+
+	return 0;
+}
+
+
 int32_t ctext::down(int32_t amount) 
 {
 	// There's a request to make the bounding
 	// box scroll only partial. What a pain.
 	if(this->m_config.m_do_wrap)
 	{
-		int32_t new_y = this->m_pos_y;
-		int32_t new_offset = this->m_pos_inrow;
-		ctext_row *p_row = &this->m_buffer[this->m_pos_y];	
-
-		this->get_win_size();
-
-		while(amount > 0)
-		{
-			new_offset += this->m_win_width;
-			amount --;
-			if(new_offset > (int32_t)p_row->data.size())
-			{
-				if(new_y + 1 >= (int32_t)this->m_buffer.size())
-				{
-					break;
-				}
-				new_offset = 0;
-				new_y++;
-				p_row = &this->m_buffer[new_y];
-			}
-		} 
-
-		while(amount < 0)
-		{
-			new_offset -= this->m_win_width;
-			amount ++;
-			if(new_offset < 0)
-			{
-				if(new_y - 1 < 0)
-				{
-					break;
-				}
-				new_y--;
-				p_row = &this->m_buffer[new_y];
-				new_offset = p_row->data.size() - p_row->data.size() % this->m_win_width;
-			}
-		}
-		return this->scroll_to(new_offset, new_y);
+		int32_t new_y, new_x;
+		this->y_scroll_calculate(amount, &new_x, &new_y);
+		return this->scroll_to(new_x, new_y);
 	}
 	else
 	{
@@ -520,7 +531,6 @@ int8_t ctext::redraw_partial_test()
 int8_t ctext::redraw_partial(int32_t start_x, int32_t start_y, int32_t end_x, int32_t end_y)
 {
 	bool is_first_line = true;
-	bool is_last_line = false;
 	
 	// Regardless of whether this is append to top
 	// or bottom we generate top to bottom.
@@ -560,7 +570,6 @@ int8_t ctext::redraw_partial(int32_t start_x, int32_t start_y, int32_t end_x, in
 	{
 		if(line == end_y)
 		{
-			is_last_line = true;
 			l_end_x = min(end_x, this->m_win_width);
 		}
 		else

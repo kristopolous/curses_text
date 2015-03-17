@@ -85,9 +85,9 @@ int main(int argc, char **argv ){
 
 		fprintf(pDebug, "%04x ", COLOR_PAIR(x * 3 + 1));
 		fflush(pDebug);
-    wattr_on(local_win, COLOR_PAIR(x * 3 + 1) | A_REVERSE, 0);
+    wattr_on(local_win, COLOR_PAIR(x * 3 + 1), 0);
     ct.printf("%05d::%s%c%c%c", x,testLen, x + 'A', x + 'A', x + 'A');
-     wstandend(local_win);
+    wstandend(local_win);
     //usleep(speed );
     /*
     for(ptr = buffer; *ptr; ptr++) {
@@ -101,6 +101,7 @@ int main(int argc, char **argv ){
   for(x = 0; x < 50; x++) {
     //ct.right();
     ct.down();
+		ct.redraw_partial_test();
     usleep(speed * 1);
     //ct.page_down();
     //usleep(speed * 1);
