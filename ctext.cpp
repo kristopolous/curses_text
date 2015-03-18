@@ -193,45 +193,53 @@ int32_t ctext::page_up(int32_t page_count)
 
 int8_t ctext::y_scroll_calculate(int32_t amount, int32_t *x, int32_t *y)
 {
-	int32_t new_y = this->m_pos_y;
-	int32_t new_offset = this->m_pos_inrow;
-	ctext_row *p_row = &this->m_buffer[this->m_pos_y];	
-
-	this->get_win_size();
-
-	while(amount > 0)
+	if(this->m_config.m_do_wrap)
 	{
-		new_offset += this->m_win_width;
-		amount --;
-		if(new_offset > (int32_t)p_row->data.size())
-		{
-			if(new_y + 1 >= (int32_t)this->m_buffer.size())
-			{
-				break;
-			}
-			new_offset = 0;
-			new_y++;
-			p_row = &this->m_buffer[new_y];
-		}
-	} 
+		int32_t new_y = this->m_pos_y;
+		int32_t new_offset = this->m_pos_inrow;
+		ctext_row *p_row = &this->m_buffer[this->m_pos_y];	
 
-	while(amount < 0)
-	{
-		new_offset -= this->m_win_width;
-		amount ++;
-		if(new_offset < 0)
+		this->get_win_size();
+
+		while(amount > 0)
 		{
-			if(new_y - 1 < 0)
+			new_offset += this->m_win_width;
+			amount --;
+			if(new_offset > (int32_t)p_row->data.size())
 			{
-				break;
+				if(new_y + 1 >= (int32_t)this->m_buffer.size())
+				{
+					break;
+				}
+				new_offset = 0;
+				new_y++;
+				p_row = &this->m_buffer[new_y];
 			}
-			new_y--;
-			p_row = &this->m_buffer[new_y];
-			new_offset = p_row->data.size() - p_row->data.size() % this->m_win_width;
+		} 
+
+		while(amount < 0)
+		{
+			new_offset -= this->m_win_width;
+			amount ++;
+			if(new_offset < 0)
+			{
+				if(new_y - 1 < 0)
+				{
+					break;
+				}
+				new_y--;
+				p_row = &this->m_buffer[new_y];
+				new_offset = p_row->data.size() - p_row->data.size() % this->m_win_width;
+			}
 		}
+		*x = new_offset;
+		*y = new_y;
 	}
-	*x = new_offset;
-	*y = new_y;
+	else
+	{
+		*x = this->m_pos_x;
+		*y = this->m_pos_y + amount;
+	}
 
 	return 0;
 }
@@ -239,18 +247,9 @@ int8_t ctext::y_scroll_calculate(int32_t amount, int32_t *x, int32_t *y)
 
 int32_t ctext::down(int32_t amount) 
 {
-	// There's a request to make the bounding
-	// box scroll only partial. What a pain.
-	if(this->m_config.m_do_wrap)
-	{
-		int32_t new_y, new_x;
-		this->y_scroll_calculate(amount, &new_x, &new_y);
-		return this->scroll_to(new_x, new_y);
-	}
-	else
-	{
-		return this->scroll_to(this->m_pos_x, this->m_pos_y + amount);
-	}
+	int32_t new_x, new_y;
+	this->y_scroll_calculate(amount, &new_x, &new_y);
+	return this->scroll_to(new_x, new_y);
 }
 
 int32_t ctext::jump_to_first_line()
@@ -511,10 +510,10 @@ int8_t ctext::redraw_partial_test()
 
 	for(y = 0; y < this->m_win_height; y++)
 	{
-		for(x = 0; x < this->m_win_width; x++)
+		for(x = 0; x < this->m_win_width; x+=7)
 		{
 			this->m_attr_mask ^= A_REVERSE;
-			this->redraw_partial(x, y, x + 1, y);
+			this->redraw_partial(x, y, x + 7, y);
 		}
 	}
 
@@ -534,8 +533,12 @@ int8_t ctext::redraw_partial(int32_t start_x, int32_t start_y, int32_t end_x, in
 	
 	// Regardless of whether this is append to top
 	// or bottom we generate top to bottom.
+  int32_t buffer_x, buffer_y;
 
+	// we need to fake scroll 
 	start_y = max(start_y, 0);
+	this->y_scroll_calculate(start_y, &buffer_x, &buffer_y);
+
 	start_x = max(start_x, 0);
 	end_y = min(end_y, this->m_win_height);
 	end_x = min(end_x, this->m_win_width);
@@ -543,7 +546,6 @@ int8_t ctext::redraw_partial(int32_t start_x, int32_t start_y, int32_t end_x, in
 	int32_t l_end_x;
 	int32_t start_char = max(0, this->m_pos_x);
 	int32_t buf_offset = start_char;
-	// the endchar will be in the substr
 	
 	//
 	// We start as m_pos_y in our list and move up to
@@ -557,7 +559,7 @@ int8_t ctext::redraw_partial(int32_t start_x, int32_t start_y, int32_t end_x, in
 	int32_t line = start_y;
 
 	// start at the beginning of the buffer.
-	int32_t index = this->m_pos_y + start_y;
+	int32_t index = buffer_y;
 	int32_t cutoff;
 	int32_t num_added = 0;
 	int32_t win_offset = start_x;
@@ -594,7 +596,7 @@ int8_t ctext::redraw_partial(int32_t start_x, int32_t start_y, int32_t end_x, in
 			{
 				if(this->m_config.m_do_wrap)
 				{
-					buf_offset = this->m_pos_inrow;
+					buf_offset = buffer_x;
 				}
 				// on the first line we push both the
 				// win offset and the buf offset forward.

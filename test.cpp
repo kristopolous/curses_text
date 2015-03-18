@@ -21,7 +21,7 @@ int main(int argc, char **argv ){
   ctext_config config;
   pDebug = fopen("debug1.txt", "a");
 
-  local_win = newwin(9, 30, 5, 5);
+  local_win = newwin(9, 29, 5, 5);
   start_color();
 
   ctext ct(local_win);
@@ -34,7 +34,7 @@ int main(int argc, char **argv ){
   config.m_buffer_size = 100;
   //config.m_scroll_on_append = true;
   config.m_do_wrap = true;
-	config.m_auto_newline = true;
+	config.m_auto_newline = false;
   //config.m_append_top = true;
   
   // set the config back
@@ -50,7 +50,7 @@ int main(int argc, char **argv ){
     wattr_get(local_win, &attrs, &color_pair_number, 0);
     //printf("%x %x ", attrs,color_pair_number);
     wattr_off(local_win, COLOR_PAIR(x), 0);
-
+i
     //wattr_on(local_win, COLOR_PAIR(x), 0);
     wattr_on(local_win, COLOR_PAIR(color_pair_number), 0);
     wattr_get(local_win, &attrs, &color_pair_number, 0);
@@ -63,6 +63,7 @@ int main(int argc, char **argv ){
 */
   }
 
+	int32_t loop = 0;
   char buffer[32], *ptr;
 	char testLen[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
   int color = 0, round;
@@ -86,7 +87,11 @@ int main(int argc, char **argv ){
 		fprintf(pDebug, "%04x ", COLOR_PAIR(x * 3 + 1));
 		fflush(pDebug);
     wattr_on(local_win, COLOR_PAIR(x * 3 + 1), 0);
-    ct.printf("%05d::%s%c%c%c", x,testLen, x + 'A', x + 'A', x + 'A');
+
+		for(loop = 0; loop < 15; loop++) {
+			ct.printf("%04d%05d::%c%c%c", loop, x, x + 'A', x + 'A', x + 'A');
+		}
+		ct.printf("\n");
     wstandend(local_win);
     //usleep(speed );
     /*
