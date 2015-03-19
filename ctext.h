@@ -117,6 +117,12 @@ typedef struct ctext_format_struct
 	int16_t color_pair;
 } ctext_format;
 
+typedef struct ctext_pos_struct
+{
+	int32_t x;
+	int32_t y;
+} ctext_pos;
+
 typedef struct ctext_row_struct
 {
 	string data;
@@ -170,13 +176,13 @@ class ctext
 		// anew.
 		//
 		// However, if you'd like to only remove part of the content,
-		// then you can pass an amount in and clear will truncate 
-		// amount units of the oldest content.
+		// then you can pass a row_count in and clear will truncate 
+		// row_count units of the oldest content.
 		//
 		// The return code is how many rows were cleared from the 
 		// buffer.
 		//
-		int32_t clear(int32_t amount = 0);
+		int32_t clear(int32_t row_count = -1);
 
 		// 
 		// Scroll_to when appending to the bottom in the traditional
@@ -190,8 +196,8 @@ class ctext
 		// Returns 0 on success
 		//
 		int8_t scroll_to(int32_t x, int32_t y);
+		int8_t scroll_to(ctext_pos *pos);
 
-		//
 		// get_offset returns the current coordinates of the view port.
 		// The values from get_offset are complementary to those 
 		// of scroll_to
@@ -199,6 +205,7 @@ class ctext
 		// Returns 0 on success
 		//
 		int8_t get_offset(int32_t*x, int32_t*y); 
+		int8_t get_offset(ctext_pos *pos);
 
 		//
 		// get_offset_percent is a courtesy function returning
@@ -347,6 +354,8 @@ class ctext
 		int8_t highlight(int32_t row, int32_t col, int32_t len);
 		int8_t redraw_partial_test();
 
+		ctext_pos *str_search(string*to_match, ctext_pos*start_point = 0);
+
 	private:
 		int8_t hit_test(int32_t test_x, int32_t test_y);
 		int8_t y_scroll_calculate(int32_t amount, int32_t *x, int32_t *y);
@@ -362,8 +371,7 @@ class ctext
 		ctext_config m_config;
 		ctext_buffer m_buffer;
 
-		int32_t m_pos_x;
-		int32_t m_pos_y;
+		ctext_pos m_pos;
 
 		int32_t m_max_y;
 
