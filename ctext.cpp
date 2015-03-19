@@ -43,7 +43,6 @@ ctext::ctext(WINDOW *win, ctext_config *config)
 
 	this->m_pos_x = 0;
 	this->m_pos_y = 0;
-	this->m_pos_inrow = 0;
 
 	this->m_attr_mask = 0;
 
@@ -129,15 +128,6 @@ int8_t ctext::direct_scroll(int32_t x, int32_t y)
 		y = max(0, y);
 	}
 
-	// if word-wrap is happening, we don't scroll horizontally
-	// at all.
-	if(this->m_config.m_do_wrap)
-	{
-		this->m_pos_x = 0;
-		this->m_pos_inrow = x;
-		x = 0;
-	}
-
 	this->m_pos_x = x;
 	this->m_pos_y = y;
 
@@ -197,12 +187,24 @@ int32_t ctext::page_up(int32_t page_count)
 	return this->down(-page_count * this->m_win_height);
 }
 
+int16_t ctext::hit_test(int32_t x, int32_t y)
+{
+	int16_t ret = 0;
+
+	if (y < this->m_pos_y)
+	{
+		ret |= CTEXT_UNDER_Y;
+	}
+
+	return ret;
+}
+
 int8_t ctext::y_scroll_calculate(int32_t amount, int32_t *x, int32_t *y)
 {
 	if(this->m_config.m_do_wrap)
 	{
 		int32_t new_y = this->m_pos_y;
-		int32_t new_offset = this->m_pos_inrow;
+		int32_t new_offset = this->m_pos_x;
 		ctext_row *p_row = &this->m_buffer[this->m_pos_y];	
 
 		this->get_win_size();
@@ -319,10 +321,6 @@ int8_t ctext::rebuf()
 	if(!this->m_config.m_do_wrap)
 	{
 		return this->direct_scroll(this->m_pos_x, this->m_pos_y);
-	}
-	else
-	{
-		return this->direct_scroll(this->m_pos_inrow, this->m_pos_y);
 	}
 }
 
@@ -516,7 +514,7 @@ int8_t ctext::redraw_partial_test()
 	this->rebuf();
 	werase(this->m_win);
 
-	x = this->m_pos_inrow;
+	x = this->m_pos_x;
 	y = this->m_pos_y;
 	data = &this->m_buffer[y].data;
 
@@ -530,7 +528,7 @@ int8_t ctext::redraw_partial_test()
 
 		x = end_x;
 		
-		if(end_x == data.size()) 
+		if(end_x == data.size() || (res & CTEXT_OVER_X)) 
 		{
 			y++;
 			x = 0;
@@ -551,12 +549,16 @@ int8_t ctext::redraw_partial_test()
 // 
 // redraw_partial takes a buffer offset and sees if it is
 // to be drawn within the current view port, which is specified
-// by m_pos_x / m_pos_inrow and m_pos_y. 
+// by m_pos_x and m_pos_y. 
 //
-int16_t ctext::redraw_partial(int32_t start_x, int32_t start_y, int32_t end_x, int32_t end_y)
+int16_t ctext::redraw_partial(int32_t abs_start_x, int32_t abs_start_y, int32_t abs_end_x, int32_t abs_end_y)
 {
 	bool is_first_line = true;
-	
+	int16_t ret = 0;
+
+	// we need to get relative start and end positions.
+	int32_t start_x, start_y, end_x, end_y;
+
   int32_t buffer_x, buffer_y;
 
 	// we need to fake scroll 
@@ -731,7 +733,7 @@ int16_t ctext::redraw_partial(int32_t start_x, int32_t start_y, int32_t end_x, i
 		line++;
 	}
 
-	return 0;
+	return ret;
 }
 
 //
@@ -1013,9 +1015,16 @@ int8_t ctext::redraw()
 			win_offset = -min(0, (int32_t)this->m_pos_x);
 			buf_offset = start_char;
 
-			if(this->m_config.m_do_wrap && is_first_line)
+			if(this->m_config.m_do_wrap)
 			{
-				buf_offset = this->m_pos_inrow;
+				if(is_first_line)
+				{
+					buf_offset = this->m_pos_x;
+				}
+				else
+				{
+					win_offset = 0;
+				}
 			}
 
 			for(;;) 

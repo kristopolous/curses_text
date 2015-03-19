@@ -348,8 +348,9 @@ class ctext
 		int16_t redraw_partial_test();
 
 	private:
+		int16_t hit_test(int32_t x, int32_t y);
 		int8_t y_scroll_calculate(int32_t amount, int32_t *x, int32_t *y);
-		int8_t redraw_partial(int32_t start_x, int32_t start_y, int32_t end_x, int32_t end_y);
+		int16_t redraw_partial(int32_t abs_start_x, int32_t abs_start_y, int32_t abs_end_x, int32_t abs_end_y);
 		bool m_do_draw;
 		ctext_row* add_row();
 		void add_format_if_needed();
@@ -363,7 +364,6 @@ class ctext
 
 		int32_t m_pos_x;
 		int32_t m_pos_y;
-		int32_t m_pos_inrow;
 
 		int32_t m_max_y;
 
