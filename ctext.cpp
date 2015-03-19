@@ -190,6 +190,8 @@ int32_t ctext::page_up(int32_t page_count)
 // let's do this real fast.
 int8_t ctext::hit_test(int32_t test_x, int32_t test_y)
 {
+	int8_t ret = 0;
+
 	// This is the trivial case.
 	if(!this->m_config.m_do_wrap)
 	{
@@ -202,7 +204,7 @@ int8_t ctext::hit_test(int32_t test_x, int32_t test_y)
 	// Otherwise it's much more challenging.
 	else
 	{
-		// if we are below the fold or we are at the first line and before
+		// If we are below the fold or we are at the first line and before
 		// the start of where we ought to be drawing
 		if(test_y < this->m_pos_y || (test_y == this->m_pos_y && test_x < this->m_pos_x))
 		{
@@ -231,7 +233,7 @@ int8_t ctext::hit_test(int32_t test_x, int32_t test_y)
 					return ret;
 				}
 
-				if(new_offset > data->size()) 
+				if(new_offset > (int32_t)data->size()) 
 				{
 					new_offset = 0;
 					new_y ++;
