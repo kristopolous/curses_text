@@ -1,10 +1,16 @@
 #include "ctext.h"
+#include <unistd.h>
 #include <string.h>
 #include <algorithm>		// std::max
 
 using namespace std;
 
 #ifndef _WIN32
+
+#define CTEXT_UNDER_Y		0x0001
+#define CTEXT_OVER_Y		0x0002
+#define CTEXT_UNDER_X		0x0010
+#define CTEXT_OVER_X		0x0020
 
 const ctext_config config_default = {
 	.m_buffer_size = CTEXT_DEFAULT_BUFFER_SIZE,
@@ -498,6 +504,7 @@ int8_t ctext::nprintf(const char*format, ...)
 int8_t ctext::redraw_partial_test()
 {
 	attr_t res_attrs; 
+	int16_t res;
 	int16_t res_color_pair;
 	int32_t x, y;
 
@@ -508,12 +515,17 @@ int8_t ctext::redraw_partial_test()
 	this->rebuf();
 	werase(this->m_win);
 
+	x = this->m_pos_inrow;
+	y = this->m_pos_y;
+
 	for(y = 0; y < this->m_win_height; y++)
 	{
 		for(x = 0; x < this->m_win_width; x+=7)
 		{
 			this->m_attr_mask ^= A_REVERSE;
 			this->redraw_partial(x, y, x + 7, y);
+			wrefresh(this->m_win);
+			usleep(1000 * 500 );
 		}
 	}
 
@@ -523,11 +535,197 @@ int8_t ctext::redraw_partial_test()
 	return 0;
 }
 
+// 
+// redraw_partial takes a buffer offset and sees if it is
+// to be drawn within the current view port, which is specified
+// by m_pos_x / m_pos_inrow and m_pos_y. 
+//
+int16_t ctext::redraw_partial(int32_t start_x, int32_t start_y, int32_t end_x, int32_t end_y)
+{
+	bool is_first_line = true;
+	
+  int32_t buffer_x, buffer_y;
+
+	// we need to fake scroll 
+	start_y = max(start_y, 0);
+	this->y_scroll_calculate(start_y, &buffer_x, &buffer_y);
+
+	start_x = max(start_x, 0);
+	end_y = min(end_y, this->m_win_height);
+	end_x = min(end_x, this->m_win_width);
+
+	int32_t l_end_x;
+	int32_t start_char = max(0, this->m_pos_x);
+	int32_t buf_offset = start_char;
+	
+	//
+	// We start as m_pos_y in our list and move up to
+	// m_pos_y + m_win_height except in the case of 
+	// wrap around.  Because of this special case,
+	// we compute when to exit slightly differently.
+	//
+	// This is the current line of output, which stays
+	// below m_win_height
+	//
+	int32_t line = start_y;
+
+	// start at the beginning of the buffer.
+	int32_t index = buffer_y;
+	int32_t cutoff;
+	int32_t num_added = 0;
+	int32_t win_offset = start_x;
+	bool b_format = false;
+	string to_add;
+	ctext_row *p_source;
+	vector<ctext_format>::iterator p_format;
+	
+	while(line <= end_y)
+	{
+		if(line == end_y)
+		{
+			l_end_x = min(end_x, this->m_win_width);
+		}
+		else
+		{
+			l_end_x = this->m_win_width;
+		}
+
+		wredrawln(this->m_win, line, 1);
+		
+		if((index < this->m_max_y) && (index >= 0))
+		{
+			// We only index into the object if we have the
+			// data to do so.
+			p_source = &this->m_buffer[index];
+			p_format = p_source->format.begin();
+
+			// Reset the offset.
+			win_offset = -min(0, (int32_t)this->m_pos_x);
+			buf_offset = start_char;
+
+			if(is_first_line)
+			{
+				if(this->m_config.m_do_wrap)
+				{
+					buf_offset = buffer_x;
+				}
+				// on the first line we push both the
+				// win offset and the buf offset forward.
+				buf_offset += start_x;
+				win_offset += start_x;
+			}
+
+			for(;;) 
+			{
+				// our initial cutoff is the remainder of window space
+				// - our start
+				cutoff = l_end_x - win_offset;
+				b_format = false;
+
+				wstandend(this->m_win);
+				// if we have a format to account for and we haven't yet,
+				if(!p_source->format.empty() && p_format->offset <= buf_offset)
+				{
+					// then we add it 
+					wattr_set(this->m_win, p_format->attrs | this->m_attr_mask, p_format->color_pair, 0);
+
+					// and tell ourselves below that we've done this.
+					b_format = true;
+
+					// see if there's another cutoff point
+					if((p_format + 1) != p_source->format.end())
+					{
+						// If it's before our newline then we'll have to do something
+						// with with that.
+						//
+						// The first one is the characters we are to print this time,
+						// the second is how many characters we would have asked for
+						// if there was no format specified.
+						cutoff = min((p_format + 1)->offset - buf_offset, cutoff); 
+					}
+				}
+
+				// if we can get that many characters than we grab them
+				// otherwise we do the empty string
+				if(buf_offset < (int32_t)p_source->data.size())
+				{
+					to_add = p_source->data.substr(buf_offset, cutoff);
+
+					mvwaddstr(this->m_win, line, win_offset, to_add.c_str());
+					is_first_line = false;
+				}
+				else
+				{
+					to_add = "";
+				}
+
+				// This is the number of characters we've placed into
+				// the window.
+				num_added = to_add.size();
+				buf_offset += num_added;
+
+				// See if we need to reset our format
+				if(b_format) 
+				{
+					// If the amount of data we tried to grab is less than
+					// the width of the window - win_offset then we know to
+					// turn off our attributes
+
+					// and push our format forward if necessary
+					if( (p_format + 1) != p_source->format.end() &&
+							(p_format + 1)->offset >= buf_offset 
+						)
+					{
+						p_format ++;
+					}
+				}
+
+				// if we are at the end of the string, we break out
+				if((int32_t)p_source->data.size() <= buf_offset || (num_added == 0 && p_source->data.size() > 0))
+				{
+					break;
+				}
+
+				// otherwise, move win_offset forward
+				win_offset += num_added;
+				
+				// otherwise, if we are wrapping, then we do that here.
+				if(win_offset == l_end_x)
+				{
+					// if we've hit the vertical bottom
+					// of our window then we break out
+					// of this
+					//
+					// otherwise if we are not wrapping then
+					// we also break out of this
+					if(line == end_y || !this->m_config.m_do_wrap)
+					{
+						break;
+					}
+
+					// otherwise move our line forward
+					line++;
+
+					// we reset the win_offset back to its
+					// initial state
+					win_offset = 0;
+
+					// and we loop again.
+				}
+			}
+		}
+		index++;
+		line++;
+	}
+
+	return 0;
+}
+
 //
 // redraw partial assumes that setup is already done and all
 // the preprocessing is figured out.
 //
-int8_t ctext::redraw_partial(int32_t start_x, int32_t start_y, int32_t end_x, int32_t end_y)
+int8_t ctext__redraw_partial(int32_t start_x, int32_t start_y, int32_t end_x, int32_t end_y)
 {
 	bool is_first_line = true;
 	
