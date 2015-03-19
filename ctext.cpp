@@ -506,7 +506,8 @@ int8_t ctext::redraw_partial_test()
 	attr_t res_attrs; 
 	int16_t res;
 	int16_t res_color_pair;
-	int32_t x, y;
+	int32_t x, y, end_x;
+	string *data;
 
 	this->get_win_size();
 	wattr_get(this->m_win, &res_attrs, &res_color_pair, 0);
@@ -517,15 +518,27 @@ int8_t ctext::redraw_partial_test()
 
 	x = this->m_pos_inrow;
 	y = this->m_pos_y;
+	data = &this->m_buffer[y].data;
 
-	for(y = 0; y < this->m_win_height; y++)
+	while(!(res & CTEXT_OVER_Y)) 
 	{
-		for(x = 0; x < this->m_win_width; x+=7)
+		this->m_attr_mask ^= A_REVERSE;
+		end_x = min(x + 7, data->size());	
+		res = this->redraw_partial(x, y, end_x, y);
+		wrefresh(this->m_win);
+		usleep(1000 * 500);
+
+		x = end_x;
+		
+		if(end_x == data.size()) 
 		{
-			this->m_attr_mask ^= A_REVERSE;
-			this->redraw_partial(x, y, x + 7, y);
-			wrefresh(this->m_win);
-			usleep(1000 * 500 );
+			y++;
+			x = 0;
+			if(y > this->m_max_y)
+			{
+				break;
+			}
+			data = &this->m_buffer[y].data;
 		}
 	}
 
