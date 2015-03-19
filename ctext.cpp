@@ -7,10 +7,10 @@ using namespace std;
 
 #ifndef _WIN32
 
-#define CTEXT_UNDER_Y		0x0001
-#define CTEXT_OVER_Y		0x0002
-#define CTEXT_UNDER_X		0x0010
-#define CTEXT_OVER_X		0x0020
+#define CTEXT_UNDER_X		0x01
+#define CTEXT_OVER_X		0x02
+#define CTEXT_UNDER_Y		0x04
+#define CTEXT_OVER_Y		0x08
 
 const ctext_config config_default = {
 	.m_buffer_size = CTEXT_DEFAULT_BUFFER_SIZE,
@@ -187,13 +187,80 @@ int32_t ctext::page_up(int32_t page_count)
 	return this->down(-page_count * this->m_win_height);
 }
 
-int16_t ctext::hit_test(int32_t x, int32_t y)
+// let's do this real fast.
+int8_t ctext::hit_test(int32_t test_x, int32_t test_y)
 {
-	int16_t ret = 0;
-
-	if (y < this->m_pos_y)
+	// This is the trivial case.
+	if(!this->m_config.m_do_wrap)
 	{
-		ret |= CTEXT_UNDER_Y;
+		return 
+				((test_x < this->m_pos_x))
+			| ((test_x > this->m_pos_x + this->m_win_width) << 1)
+			|	((test_y < this->m_pos_y) << 2)
+			| ((test_y > this->m_pos_y + this->m_win_height) << 3);
+	}
+	// Otherwise it's much more challenging.
+	else
+	{
+		// if we are below the fold or we are at the first line and before
+		// the start of where we ought to be drawing
+		if(test_y < this->m_pos_y || (test_y == this->m_pos_y && test_x < this->m_pos_x))
+		{
+			ret |= CTEXT_UNDER_Y;
+		}
+		else 
+		{
+			// to see if it's an overflow y is a bit harder
+			int32_t new_y = this->m_pos_y, 
+							win_y = 0;
+
+			int32_t new_offset = this->m_pos_x;
+
+			string *data = &this->m_buffer[new_y].data;
+
+			for(win_y = 0; win_y < this->m_win_height; win_y++)
+			{
+				new_offset += this->m_win_width;
+
+				// there's an edge case that requires this
+				// twice due to a short circuit exit that 
+				// would be triggered at the end of a buffer, 
+				// see below.
+				if(test_y == new_y && test_x < new_offset)
+				{
+					return ret;
+				}
+
+				if(new_offset > data->size()) 
+				{
+					new_offset = 0;
+					new_y ++;
+					if(new_y > this->m_max_y)
+					{
+						break;
+					}
+					data = &this->m_buffer[new_y].data;
+				}
+
+				if(
+					// We've passed it and we know it's not
+					// an underflow, so we're done.
+					(test_y < new_y) ||
+
+					// We are at the end line and our test point
+					// is below the offset that we just flew past
+					(test_y == new_y && test_x < new_offset)
+				)
+				{
+					return ret;
+				}
+			}
+
+			// If we get here that means that we went all the way through
+			// a "generation" and didn't reach our hit point ... that means
+			// it's an overflow.
+			ret |= CTEXT_OVER_Y;	
+		}
 	}
 
 	return ret;
