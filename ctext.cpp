@@ -318,10 +318,7 @@ int8_t ctext::rebuf()
 	// issue a rescroll on exactly our previous parameters. This may
 	// force us inward or may retain our position.
 	// 
-	if(!this->m_config.m_do_wrap)
-	{
-		return this->direct_scroll(this->m_pos_x, this->m_pos_y);
-	}
+	return this->direct_scroll(this->m_pos_x, this->m_pos_y);
 }
 
 void ctext::add_format_if_needed()
@@ -521,14 +518,14 @@ int8_t ctext::redraw_partial_test()
 	while(!(res & CTEXT_OVER_Y)) 
 	{
 		this->m_attr_mask ^= A_REVERSE;
-		end_x = min(x + 7, data->size());	
+		end_x = min(x + 7, (int32_t)data->size());	
 		res = this->redraw_partial(x, y, end_x, y);
 		wrefresh(this->m_win);
 		usleep(1000 * 500);
 
 		x = end_x;
 		
-		if(end_x == data.size() || (res & CTEXT_OVER_X)) 
+		if(end_x == (int32_t)data->size() || (res & CTEXT_OVER_X)) 
 		{
 			y++;
 			x = 0;
@@ -740,6 +737,7 @@ int16_t ctext::redraw_partial(int32_t abs_start_x, int32_t abs_start_y, int32_t 
 // redraw partial assumes that setup is already done and all
 // the preprocessing is figured out.
 //
+/*
 int8_t ctext__redraw_partial(int32_t start_x, int32_t start_y, int32_t end_x, int32_t end_y)
 {
 	bool is_first_line = true;
@@ -922,6 +920,7 @@ int8_t ctext__redraw_partial(int32_t start_x, int32_t start_y, int32_t end_x, in
 
 	return 0;
 }
+*/
 
 int8_t ctext::redraw() 
 {
@@ -1017,14 +1016,7 @@ int8_t ctext::redraw()
 
 			if(this->m_config.m_do_wrap)
 			{
-				if(is_first_line)
-				{
-					buf_offset = this->m_pos_x;
-				}
-				else
-				{
-					win_offset = 0;
-				}
+				buf_offset = is_first_line ? this->m_pos_x : 0;
 			}
 
 			for(;;) 

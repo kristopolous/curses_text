@@ -106,7 +106,6 @@ i
   for(x = 0; x < 50; x++) {
     //ct.right();
     ct.down();
-		ct.redraw_partial_test();
     usleep(speed * 1);
     //ct.page_down();
     //usleep(speed * 1);

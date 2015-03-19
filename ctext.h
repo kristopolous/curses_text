@@ -345,7 +345,7 @@ class ctext
 		int8_t ob_end();
 
 		int8_t highlight(int32_t row, int32_t col, int32_t len);
-		int16_t redraw_partial_test();
+		int8_t redraw_partial_test();
 
 	private:
 		int16_t hit_test(int32_t x, int32_t y);
