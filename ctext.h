@@ -357,7 +357,7 @@ class ctext
 		ctext_pos *str_search(string*to_match, ctext_pos*start_point = 0);
 
 	private:
-		int8_t hit_test(int32_t test_x, int32_t test_y);
+		int8_t map_to_win(int32_t buffer_x, int32_t buffer_y, ctext_pos *win);
 		int8_t y_scroll_calculate(int32_t amount, int32_t *x, int32_t *y);
 		int16_t redraw_partial(int32_t abs_start_x, int32_t abs_start_y, int32_t abs_end_x, int32_t abs_end_y);
 		bool m_do_draw;

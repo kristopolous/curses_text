@@ -199,39 +199,46 @@ int32_t ctext::page_up(int32_t page_count)
 }
 
 // let's do this real fast.
-int8_t ctext::hit_test(int32_t test_x, int32_t test_y)
+int8_t ctext::map_to_win(int32_t buffer_x, int32_t buffer_y, ctext_pos*win)
 {
 	int8_t ret = 0;
 
 	// This is the trivial case.
 	if(!this->m_config.m_do_wrap)
 	{
+		// these are trivial.
+		win->y = buffer_y - this->m_pos.y;
+		win->x = buffer_x - this->m_pos.x;
+
 		return 
-				((test_x < this->m_pos.x))
-			| ((test_x > this->m_pos.x + this->m_win_width) << 1)
-			|	((test_y < this->m_pos.y) << 2)
-			| ((test_y > this->m_pos.y + this->m_win_height) << 3);
+				((buffer_x < this->m_pos.x))
+			| ((buffer_x > this->m_pos.x + this->m_win_width) << 1)
+			|	((buffer_y < this->m_pos.y) << 2)
+			| ((buffer_y > this->m_pos.y + this->m_win_height) << 3);
 	}
 	// Otherwise it's much more challenging.
 	else
 	{
 		// If we are below the fold or we are at the first line and before
 		// the start of where we ought to be drawing
-		if(test_y < this->m_pos.y || (test_y == this->m_pos.y && test_x < this->m_pos.x))
+		if(buffer_y < this->m_pos.y || (buffer_y == this->m_pos.y && buffer_x < this->m_pos.x))
 		{
+			// we omit win calculations here since they
+			// would be more expensive then we'd like
+			win->x = win->y = -1;
+
 			ret |= CTEXT_UNDER_Y;
 		}
 		else 
 		{
 			// to see if it's an overflow y is a bit harder
-			int32_t new_y = this->m_pos.y, 
-							win_y = 0;
+			int32_t new_y = this->m_pos.y;
 
 			int32_t new_offset = this->m_pos.x;
 
 			string *data = &this->m_buffer[new_y].data;
 
-			for(win_y = 0; win_y < this->m_win_height; win_y++)
+			for(win->y = 0; win->y < this->m_win_height; win->y++)
 			{
 				new_offset += this->m_win_width;
 
@@ -239,8 +246,9 @@ int8_t ctext::hit_test(int32_t test_x, int32_t test_y)
 				// twice due to a short circuit exit that 
 				// would be triggered at the end of a buffer, 
 				// see below.
-				if(test_y == new_y && test_x < new_offset)
+				if(buffer_y == new_y && buffer_x < new_offset)
 				{
+					win->x = buffer_x - (new_offset - this->m_win_width);
 					return ret;
 				}
 
@@ -258,16 +266,20 @@ int8_t ctext::hit_test(int32_t test_x, int32_t test_y)
 				if(
 					// We've passed it and we know it's not
 					// an underflow, so we're done.
-					(test_y < new_y) ||
+					(buffer_y < new_y) ||
 
 					// We are at the end line and our test point
 					// is below the offset that we just flew past
-					(test_y == new_y && test_x < new_offset)
+					(buffer_y == new_y && buffer_x < new_offset)
 				)
 				{
+					win->x = buffer_x - (new_offset - this->m_win_width);
+
 					return ret;
 				}
 			}
+
+			win->y = -1;
 
 			// If we get here that means that we went all the way through
 			// a "generation" and didn't reach our hit point ... that means
