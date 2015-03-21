@@ -28,8 +28,10 @@ ctext::ctext(WINDOW *win, ctext_config *config)
 {
 	this->m_win = win;
 
+	/*
 	this->m_debug = new ofstream();
 	this->m_debug->open("debug1.txt");
+	*/
 
 	this->m_do_draw = true;
 	
@@ -671,8 +673,10 @@ int16_t ctext::redraw_partial(
 
 	ret = this->map_to_win(buf_end_x, buf_end_y, &win_end);
 
+	/*
 	*this->m_debug << "(" << win_start.x << " " << win_start.y << ") " <<
 			 "(" << win_end.x << " " << win_end.y << ") " << endl;
+			 */
 
 	// This also means that none of this will map to screen, 
 	// return the underflow and bail.
