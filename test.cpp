@@ -5,6 +5,15 @@
 #define CURSES_CTEXT_DEBUG 1
 #include "ctext.h"
 
+#define page 4096
+int from_stdin(ctext*ct)
+{
+	char buffer[page];
+	while(fgets(buffer, page, stdin)) {
+		ct->printf("%s", buffer);
+	}
+}
+		
 int main(int argc, char **argv ){
   FILE *pDebug;
   int speed = 450000;
@@ -21,7 +30,7 @@ int main(int argc, char **argv ){
   ctext_config config;
   pDebug = fopen("debug1.txt", "a");
 
-  local_win = newwin(9, 30, 5, 5);
+  local_win = newwin(9, 70, 5, 5);
   start_color();
 
   ctext ct(local_win);
@@ -31,7 +40,7 @@ int main(int argc, char **argv ){
 
   // add my handler
   config.m_bounding_box = true;
-  config.m_buffer_size = 100;
+  config.m_buffer_size = 30;
   //config.m_scroll_on_append = true;
   config.m_do_wrap = true;
 	config.m_auto_newline = false;
@@ -68,7 +77,7 @@ i
 	char testLen[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
   int color = 0, round;
   ct.ob_start();
-		fprintf(pDebug, "\n\n ");
+if(0) {
   for(y = 0; y < 250; y++) {
     //fprintf(pDebug, "%d\n", ct.available_rows());
     x = y % 50;
@@ -100,14 +109,19 @@ i
     }
     */
   }
+}
+	from_stdin(&ct);
+
   ct.ob_end();
+/*
 		ct.redraw_partial_test();
     usleep(speed );
+*/
 
-  for(x = 0; x < 50; x++) {
+  for(x = 0; x < 100; x++) {
     //ct.right();
     ct.down();
-    usleep(speed * 1);
+    usleep(speed / 5);
     //ct.page_down();
     //usleep(speed * 1);
   }

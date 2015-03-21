@@ -673,11 +673,6 @@ int16_t ctext::redraw_partial(
 
 	ret = this->map_to_win(buf_end_x, buf_end_y, &win_end);
 
-	/*
-	*this->m_debug << "(" << win_start.x << " " << win_start.y << ") " <<
-			 "(" << win_end.x << " " << win_end.y << ") " << endl;
-			 */
-
 	// This also means that none of this will map to screen, 
 	// return the underflow and bail.
 	if(ret & CTEXT_UNDER_Y)
@@ -695,10 +690,10 @@ int16_t ctext::redraw_partial(
 	// below m_win_height
 	//
 	int32_t win_current_y = win_start.y;
+	int32_t buf_current_y = buf_start_y;
 
 	// this is for horizontal scroll.
 	int32_t start_char = max(0, this->m_pos.x);
-	int32_t buf_current_y = buf_start_y;
 	
 	while(win_current_y <= win_end.y)
 	{
