@@ -78,7 +78,8 @@ ctext_pos *ctext::str_search(string*to_match, ctext_pos*start_point = 0)
 {
 	this->m_query = to_match;
 
-	if(!start_point) {
+	if(!start_point) 
+	{
 
 	}
 	return start_point;
@@ -797,9 +798,7 @@ int16_t ctext::redraw_partial(
 					// turn off our attributes
 
 					// and push our format forward if necessary
-					if( (p_format + 1) != p_source->format.end() &&
-							(p_format + 1)->offset >= buf_offset_x 
-						)
+					if( (p_format + 1) != p_source->format.end() && (p_format + 1)->offset >= buf_offset_x )
 					{
 						p_format ++;
 					}
