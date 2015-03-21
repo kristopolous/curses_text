@@ -93,7 +93,6 @@ i
 		}
 		ct.printf("\n");
     wstandend(local_win);
-    //usleep(speed );
     /*
     for(ptr = buffer; *ptr; ptr++) {
       ct.putchar((char)*ptr);
@@ -102,6 +101,8 @@ i
     */
   }
   ct.ob_end();
+		ct.redraw_partial_test();
+    usleep(speed );
 
   for(x = 0; x < 50; x++) {
     //ct.right();

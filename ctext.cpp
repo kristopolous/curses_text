@@ -28,10 +28,8 @@ ctext::ctext(WINDOW *win, ctext_config *config)
 {
 	this->m_win = win;
 
-	/*
 	this->m_debug = new ofstream();
 	this->m_debug->open("debug1.txt");
-	*/
 
 	this->m_do_draw = true;
 	
@@ -648,14 +646,14 @@ int16_t ctext::redraw_partial(
 		int32_t buf_end_x, int32_t buf_end_y)
 {
 	bool b_format = false;
-	int32_t cutoff;
 	string to_add;
 	ctext_row *p_source;
 	vector<ctext_format>::iterator p_format;
 	bool is_first_line = true;
 	int16_t ret = 0;
 	int32_t num_added_x = 0;
-	int32_t win_offset_x;
+	int32_t num_to_add = 0;
+	int32_t win_current_x;
 	int32_t win_current_end_x;
 	int32_t buf_offset_x;
 
@@ -672,6 +670,9 @@ int16_t ctext::redraw_partial(
 	}
 
 	ret = this->map_to_win(buf_end_x, buf_end_y, &win_end);
+
+	*this->m_debug << "(" << win_start.x << " " << win_start.y << ") " <<
+			 "(" << win_end.x << " " << win_end.y << ") " << endl;
 
 	// This also means that none of this will map to screen, 
 	// return the underflow and bail.
@@ -717,12 +718,12 @@ int16_t ctext::redraw_partial(
 			p_format = p_source->format.begin();
 
 			// Reset the offset.
-			win_offset_x = -min(0, (int32_t)this->m_pos.x);
+			win_current_x = -min(0, (int32_t)this->m_pos.x);
 
 			if(is_first_line)
 			{
 				buf_offset_x = buf_start_x;
-				win_offset_x += win_start_x;
+				win_current_x += win_start.x;
 			}
 			else 
 			{
@@ -731,12 +732,13 @@ int16_t ctext::redraw_partial(
 
 			for(;;) 
 			{
-				// our initial cutoff is the remainder of window space
-				// - our start
-				cutoff = win_current_end_x - win_offset_x;
+				// our initial num_to_add is the remainder of window space
+				// - our start (end of the screen - starting position)
+				num_to_add = win_current_end_x - win_current_x;
 				b_format = false;
 
 				wstandend(this->m_win);
+
 				// if we have a format to account for and we haven't yet,
 				if(!p_source->format.empty() && p_format->offset <= buf_offset_x)
 				{
@@ -746,7 +748,7 @@ int16_t ctext::redraw_partial(
 					// and tell ourselves below that we've done this.
 					b_format = true;
 
-					// see if there's another cutoff point
+					// see if there's another num_to_add point
 					if((p_format + 1) != p_source->format.end())
 					{
 						// If it's before our newline then we'll have to do something
@@ -755,7 +757,7 @@ int16_t ctext::redraw_partial(
 						// The first one is the characters we are to print this time,
 						// the second is how many characters we would have asked for
 						// if there was no format specified.
-						cutoff = min((p_format + 1)->offset - buf_offset_x, cutoff); 
+						num_to_add = min((p_format + 1)->offset - buf_offset_x, num_to_add); 
 					}
 				}
 
@@ -763,9 +765,9 @@ int16_t ctext::redraw_partial(
 				// otherwise we do the empty string
 				if(buf_offset_x < (int32_t)p_source->data.size())
 				{
-					to_add = p_source->data.substr(buf_offset_x, cutoff);
+					to_add = p_source->data.substr(buf_offset_x, num_to_add);
 
-					mvwaddstr(this->m_win, win_current_y, win_offset_x, to_add.c_str());
+					mvwaddstr(this->m_win, win_current_y, win_current_x, to_add.c_str());
 					is_first_line = false;
 				}
 				else
@@ -800,11 +802,11 @@ int16_t ctext::redraw_partial(
 					break;
 				}
 
-				// otherwise, move win_offset_x forward
-				win_offset_x += num_added_x;
+				// otherwise, move win_current_x forward
+				win_current_x += num_added_x;
 				
 				// otherwise, if we are wrapping, then we do that here.
-				if(win_offset_x == win_current_end_x)
+				if(win_current_x == win_current_end_x)
 				{
 					// if we've hit the vertical bottom
 					// of our window then we break out
@@ -812,7 +814,7 @@ int16_t ctext::redraw_partial(
 					//
 					// otherwise if we are not wrapping then
 					// we also break out of this
-					if(win_current_y == win_end.y || !this->m_config.m_do_wrap)
+					if(win_current_y == win_end.y)
 					{
 						break;
 					}
@@ -820,9 +822,17 @@ int16_t ctext::redraw_partial(
 					// otherwise move our line forward
 					win_current_y++;
 
-					// we reset the win_offset_x back to its
+					// if we are at the last line to generate
+					if(win_current_y == win_end.y)
+					{
+						// then we make sure that we end
+						// where we are supposed to.
+						win_current_end_x = win_end.x;
+					}
+
+					// we reset the win_current_x back to its
 					// initial state
-					win_offset_x = 0;
+					win_current_x = 0;
 
 					// and we loop again.
 				}
