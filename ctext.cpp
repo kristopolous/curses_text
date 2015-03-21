@@ -225,11 +225,8 @@ int8_t ctext::map_to_win(int32_t buffer_x, int32_t buffer_y, ctext_pos*win)
 		win->y = buffer_y - this->m_pos.y;
 		win->x = buffer_x - this->m_pos.x;
 
-		return 
-				((buffer_x < this->m_pos.x))
-			| ((buffer_x > this->m_pos.x + this->m_win_width) << 1)
-			|	((buffer_y < this->m_pos.y) << 2)
-			| ((buffer_y > this->m_pos.y + this->m_win_height) << 3);
+		return ((buffer_x < this->m_pos.x)) | ((buffer_x > this->m_pos.x + this->m_win_width) << 1)
+			| ((buffer_y < this->m_pos.y) << 2) | ((buffer_y > this->m_pos.y + this->m_win_height) << 3);
 	}
 	// Otherwise it's much more challenging.
 	else
