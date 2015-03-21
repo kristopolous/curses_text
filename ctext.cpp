@@ -535,7 +535,7 @@ int8_t ctext::vprintf(const char*format, va_list ap)
 		}
 		p_line = n_line + 1;
 	} 
-  while (*n_line);
+	while (*n_line);
 
 	if(this->m_config.m_auto_newline)
 	{
