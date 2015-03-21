@@ -354,6 +354,7 @@ class ctext
 		int8_t highlight(int32_t row, int32_t col, int32_t len);
 		int8_t redraw_partial_test();
 
+		// to end a search make the to_match equal to NULL
 		ctext_pos *str_search(string*to_match, ctext_pos*start_point = 0);
 
 	private:
@@ -366,6 +367,8 @@ class ctext
 		int8_t rebuf();
 		int8_t direct_scroll(int32_t x, int32_t y);
 		attr_t m_attr_mask;
+
+		string *m_query;
 
 		WINDOW *m_win;
 		ctext_config m_config;

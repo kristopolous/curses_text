@@ -34,6 +34,7 @@ ctext::ctext(WINDOW *win, ctext_config *config)
 	*/
 
 	this->m_do_draw = true;
+	this->m_query = 0;
 	
 	if(config) 
 	{
@@ -71,6 +72,17 @@ int8_t ctext::attach_curses_window(WINDOW *win)
 {
 	this->m_win = win;
 	return this->redraw();
+}
+
+ctext_pos *ctext::str_search(string*to_match, ctext_pos*start_point = 0)
+{
+	this->m_query = to_match;
+
+	if(!start_point) {
+
+	}
+	return start_point;
+
 }
 
 int32_t ctext::putchar(int32_t c)
@@ -312,6 +324,7 @@ int8_t ctext::y_scroll_calculate(int32_t amount, int32_t *x, int32_t *y)
 			{
 				if(new_y + 1 >= (int32_t)this->m_buffer.size())
 				{
+					// this means that forwarding our buffer was a mistake
 					break;
 				}
 				new_offset = 0;
