@@ -611,7 +611,7 @@ int8_t ctext::redraw_partial_test()
 	while(!(res & CTEXT_OVER_Y)) 
 	{
 		this->m_attr_mask ^= A_REVERSE;
-		end_x = min(x + 7, (int32_t)data->size());	
+		end_x = min(x + rand() % 9 + 1, (int32_t)data->size());	
 		res = this->redraw_partial(x, y, end_x, y);
 		wrefresh(this->m_win);
 		usleep(1000 * 500);

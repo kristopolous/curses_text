@@ -21,7 +21,7 @@ int main(int argc, char **argv ){
   ctext_config config;
   pDebug = fopen("debug1.txt", "a");
 
-  local_win = newwin(9, 29, 5, 5);
+  local_win = newwin(9, 30, 5, 5);
   start_color();
 
   ctext ct(local_win);
@@ -88,8 +88,8 @@ i
 		fflush(pDebug);
     wattr_on(local_win, COLOR_PAIR(x * 3 + 1), 0);
 
-		for(loop = 0; loop < 15; loop++) {
-			ct.printf("%04d%05d::%c%c%c", loop, x, x + 'A', x + 'A', x + 'A');
+		for(loop = 1; loop < 9; loop++) {
+			ct.printf("%d%c%d%c::", loop, loop + 'A', loop, loop + 'a');
 		}
 		ct.printf("\n");
     wstandend(local_win);
