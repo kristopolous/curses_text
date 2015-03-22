@@ -123,6 +123,35 @@ typedef struct ctext_pos_struct
 	int32_t y;
 } ctext_pos;
 
+typedef struct ctext_search_struct
+{
+	// the current position of the 
+	// search. ... you could do
+	//
+	// ct.get_offset(&search.pos);
+	//
+	// in order to initialize it to
+	// the current point.
+	//
+	ctext_pos pos;
+
+	// should we wrap around when
+	// we are done.
+	bool do_wrap;
+
+	// true if we are searching forward
+	// false if we aren't.
+	bool is_forward;
+
+	// the string to match
+	string*to_search;
+
+	// this is used internally,
+	// please don't modify.
+	ctext_pos _start_pos;
+
+} ctext_search;
+
 typedef struct ctext_row_struct
 {
 	string data;
@@ -315,7 +344,6 @@ class ctext
 		// inside of an instance in order to migrate an existing
 		// application to this library seamlessly.
 		//
-		int32_t putchar(int32_t c);
 		int8_t printf(const char*format, ...);
 		int8_t vprintf(const char*format, va_list ap = 0);
 
@@ -354,8 +382,10 @@ class ctext
 		int8_t highlight(int32_t row, int32_t col, int32_t len);
 		int8_t redraw_partial_test();
 
-		// to end a search make the to_match equal to NULL
-		ctext_pos *str_search(string*to_match, ctext_pos*start_point = 0);
+		// This is how you initialize a search.
+		ctext_search *new_search(ctext_search *you_manage_this_memory, string *to_search, bool is_forward, bool do_wrap);
+
+		int8_t str_search(ctext_search *to_search);
 
 	private:
 		int8_t map_to_win(int32_t buffer_x, int32_t buffer_y, ctext_pos *win);

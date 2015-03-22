@@ -74,21 +74,34 @@ int8_t ctext::attach_curses_window(WINDOW *win)
 	return this->redraw();
 }
 
-ctext_pos *ctext::str_search(string*to_match, ctext_pos*start_point = 0)
+ctext_search *ctext::new_search(ctext_search *you_manage_this_memory, string *to_search, bool is_forward, bool do_wrap)
 {
-	this->m_query = to_match;
+	ctext_search *p_search = you_manage_this_memory;
 
-	if(!start_point) 
+	if(!p_search)
 	{
-
+		return -1;
 	}
-	return start_point;
 
+	this->get_offset(&p_search->pos);
+	this->get_offset(&p_search->_start_pos);
+
+	p_search->do_wrap = do_wrap;
+	p_search->is_forward = is_forward;
+	p_search->to_search = to_search;
+	
+	return p_search;
 }
 
-int32_t ctext::putchar(int32_t c)
+int8_t ctext::str_search(ctext_search *to_search)
 {
-	return this->printf("%c", c);
+	if(!to_search)
+	{
+		return -1;
+	}
+
+
+	return 0;
 }
 
 int32_t ctext::clear(int32_t row_count)
