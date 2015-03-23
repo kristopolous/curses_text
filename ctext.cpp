@@ -84,23 +84,68 @@ ctext_search *ctext::new_search(ctext_search *you_manage_this_memory, string *to
 	}
 
 	this->get_offset(&p_search->pos);
-	this->get_offset(&p_search->_start_pos);
 
 	p_search->do_wrap = do_wrap;
 	p_search->is_forward = is_forward;
-	p_search->to_search = to_search;
+	p_search->query = to_search;
+
+	this->get_offset(&p_search->_start_pos);
+	p_search->_last_match = {-1, -1};
 	
 	return p_search;
 }
 
 int8_t ctext::str_search(ctext_search *to_search)
 {
+	int32_t size = (int32_t)this->m_buffer.size();
+	size_t pos;
+	string *haystack;
+
 	if(!to_search)
 	{
 		return -1;
 	}
 
+	do {
+		haystack = this->m_buffer[to_search->pos.y].data;
 
+		if(to_search->is_forward)
+		{
+			found = strstr(haystack + to_search->pos.x, to_search->query);
+		}
+		else
+		{
+		}
+
+		if(found == string::npos) 
+		{
+			to_search->pos.y = (to_search->pos.y + (to_search->is_forward ? 1 : -1)) % size;
+
+			// wrap if we are going backwards.
+			if(to_search->pos.y == -1)
+			{
+				to_search->pos.y = size - 1;
+			}
+
+			// The edge case here is if there are no matches and we ARE wrapping,
+			// we don't want the idiot case of going through the haystack endlessly
+			// like a chump and locking up the application.
+			if(to_search->pos.y == to_search->_start_pos.y && 
+				(to_search->do_wrap == false || to_search->_last_match.y == -1)
+			)
+			{
+				return -1;
+			}
+		}
+		else
+		{
+			// this is all we really care about, we don't need
+			// to look at the x value
+			to_search->_last_match.y = to_search->pos.y;
+		}
+	}
+
+	if(!found)
 	return 0;
 }
 
