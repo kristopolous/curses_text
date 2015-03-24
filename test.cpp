@@ -17,6 +17,7 @@ int from_stdin(ctext*ct)
 int main(int argc, char **argv ){
   FILE *pDebug;
   int speed = 450000;
+	int8_t ret;
   int16_t x = 0;
   int16_t y = 0;
   int amount = 0;
@@ -113,6 +114,12 @@ if(0) {
 	from_stdin(&ct);
 
   ct.ob_end();
+
+	ctext_search searcher;
+	ct.new_search(&searcher, "the");
+	do {
+		ret = ct.str_search(&searcher);
+	} while (!ret);
 /*
 		ct.redraw_partial_test();
     usleep(speed );

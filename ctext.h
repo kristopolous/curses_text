@@ -384,7 +384,7 @@ class ctext
 		int8_t redraw_partial_test();
 
 		// This is how you initialize a search.
-		ctext_search *new_search(ctext_search *you_manage_this_memory, string to_search, bool is_forward, bool do_wrap);
+		ctext_search *new_search(ctext_search *you_manage_this_memory, string to_search, bool is_forward = true, bool do_wrap = false);
 
 		int8_t str_search(ctext_search *to_search);
 

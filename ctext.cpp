@@ -155,6 +155,7 @@ int8_t ctext::str_search(ctext_search *to_search)
 			// this is all we really care about, we don't need
 			// to look at the x value
 			to_search->_last_match.y = to_search->pos.y;
+			to_search->pos.x = (int32_t)found;
 			break;
 		}
 	}
