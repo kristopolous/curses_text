@@ -111,20 +111,32 @@ int8_t ctext::str_search(ctext_search *to_search)
 
 		if(to_search->is_forward)
 		{
-			found = strstr(haystack + to_search->pos.x, to_search->query);
+			found = haystack.find(to_search->query, (size_t)to_search->pos.x);
 		}
 		else
 		{
+			found = haystack.rfind(to_search->query, (size_t)to_search->pos.x);
 		}
 
 		if(found == string::npos) 
 		{
 			to_search->pos.y = (to_search->pos.y + (to_search->is_forward ? 1 : -1)) % size;
 
-			// wrap if we are going backwards.
-			if(to_search->pos.y == -1)
+			if(to_search->is_forward)
 			{
-				to_search->pos.y = size - 1;
+				to_search->pos.y = (to_search->pos.y + 1) % size;
+				to_search->pos.x = 0;
+			}
+			else
+			{
+				to_search->pos.y--;
+
+				// wrap if we are going backwards.
+				if(to_search->pos.y == -1)
+				{
+					to_search->pos.y = size - 1;
+				}
+				to_search->pos.x = (int32_t)this->m_buffer[to_search->pos.y].data.size();
 			}
 
 			// The edge case here is if there are no matches and we ARE wrapping,
