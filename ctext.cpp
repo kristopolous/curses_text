@@ -74,13 +74,13 @@ int8_t ctext::attach_curses_window(WINDOW *win)
 	return this->redraw();
 }
 
-ctext_search *ctext::new_search(ctext_search *you_manage_this_memory, string *to_search, bool is_forward, bool do_wrap)
+ctext_search *ctext::new_search(ctext_search *you_manage_this_memory, string to_search, bool is_forward, bool do_wrap)
 {
 	ctext_search *p_search = you_manage_this_memory;
 
 	if(!p_search)
 	{
-		return -1;
+		return NULL;
 	}
 
 	this->get_offset(&p_search->pos);
@@ -90,7 +90,7 @@ ctext_search *ctext::new_search(ctext_search *you_manage_this_memory, string *to
 	p_search->query = to_search;
 
 	this->get_offset(&p_search->_start_pos);
-	p_search->_last_match = {-1, -1};
+	p_search->_last_match.y = -1;
 	
 	return p_search;
 }
@@ -98,15 +98,16 @@ ctext_search *ctext::new_search(ctext_search *you_manage_this_memory, string *to
 int8_t ctext::str_search(ctext_search *to_search)
 {
 	int32_t size = (int32_t)this->m_buffer.size();
-	size_t pos;
-	string *haystack;
+	size_t found;
+	string haystack;
 
 	if(!to_search)
 	{
 		return -1;
 	}
 
-	do {
+	for(;;) 
+	{
 		haystack = this->m_buffer[to_search->pos.y].data;
 
 		if(to_search->is_forward)
@@ -154,10 +155,10 @@ int8_t ctext::str_search(ctext_search *to_search)
 			// this is all we really care about, we don't need
 			// to look at the x value
 			to_search->_last_match.y = to_search->pos.y;
+			break;
 		}
 	}
 
-	if(!found)
 	return 0;
 }
 
