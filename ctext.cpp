@@ -112,7 +112,7 @@ int8_t ctext::str_search(ctext_search *to_search)
 
 		if(to_search->is_forward)
 		{
-			found = haystack.find(to_search->query, (size_t)to_search->pos.x);
+			found = haystack.find(to_search->query, (size_t)(to_search->pos.x ? to_search->pos.x + 1 : to_search->pos.x));
 		}
 		else
 		{
@@ -121,8 +121,6 @@ int8_t ctext::str_search(ctext_search *to_search)
 
 		if(found == string::npos) 
 		{
-			to_search->pos.y = (to_search->pos.y + (to_search->is_forward ? 1 : -1)) % size;
-
 			if(to_search->is_forward)
 			{
 				to_search->pos.y = (to_search->pos.y + 1) % size;
@@ -596,7 +594,7 @@ int8_t ctext::vprintf(const char*format, va_list ap)
 
 	p_line = large_buffer;
 	do 
-  {
+	{
 		n_line = next_type(p_line, '\n');
 
 		string wstr(p_line, n_line - p_line);
