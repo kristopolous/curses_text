@@ -398,6 +398,7 @@ class ctext
 		void add_format_if_needed();
 		int8_t rebuf();
 		int8_t direct_scroll(int32_t x, int32_t y);
+		int8_t direct_scroll(ctext_pos*pos);
 		attr_t m_attr_mask;
 
 		string *m_query;

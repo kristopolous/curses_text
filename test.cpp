@@ -116,7 +116,7 @@ if(0) {
   ct.ob_end();
 
 	ctext_search searcher;
-	ct.new_search(&searcher, "the");
+	ct.new_search(&searcher, "accepted");
 	do {
 		ret = ct.str_search(&searcher);
 		ct.highlight(&searcher);

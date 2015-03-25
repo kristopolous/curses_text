@@ -76,11 +76,10 @@ int8_t ctext::attach_curses_window(WINDOW *win)
 
 int8_t ctext::highlight(ctext_search *context)
 {
-	this->scroll_to(&context->pos);
+	//this->direct_scroll(&context->pos);
 	this->m_attr_mask |= A_REVERSE;
 	this->redraw_partial(&context->pos, context->query.size());
-//	this->m_attr_mask &= ~A_REVERSE;
-	this->redraw_partial_test();
+	this->m_attr_mask &= ~A_REVERSE;
 	wrefresh(this->m_win);
 //	this->redraw();
 	return 0;
@@ -216,6 +215,11 @@ int8_t ctext::ob_end()
 	this->m_do_draw = true;
 	this->redraw();
 	return ret;
+}
+
+int8_t ctext::direct_scroll(ctext_pos*p)
+{
+	return this->direct_scroll(p->x, p->y);
 }
 
 int8_t ctext::direct_scroll(int32_t x, int32_t y)
