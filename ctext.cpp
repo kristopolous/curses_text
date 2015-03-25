@@ -107,7 +107,7 @@ int8_t ctext::str_search(ctext_search *to_search)
 {
 	int8_t ret;
 
-	ret = this->str_search(to_search);
+	ret = this->str_search_single(to_search);
 
 	// this means that it was found somewhere and our
 	// pointer has been moved forward
@@ -127,11 +127,15 @@ int8_t ctext::str_search(ctext_search *to_search)
 		// we will say the limit is the viewport height ... this makes sure we go over
 		// the maximum extent possible.  We also make sure we do this after our first match
 		// otherwise this would reflect our current viewport, shameful!
-		limit.y = min(to_search->pos.y + this->m_win_height, (int32_t)this->m_buffer.data.size());
+		limit.y = min(to_search->pos.y + this->m_win_height, (int32_t)this->m_buffer.size());
 
 		// now we iterate through the viewport highlighting all of the instances, using the 
 		// limit and the in_viewport pointer.
-
+		while(ret >= 0)
+		{
+			this->highlight(&in_viewport);
+			ret = this->str_search_single(&in_viewport, &limit);
+		}
 	}
 	// refresh our window and we're done with it.
 	wrefresh(this->m_win);

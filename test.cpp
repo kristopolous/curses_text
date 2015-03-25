@@ -117,12 +117,11 @@ if(0) {
 
 	ctext_search searcher;
 	ct.new_search(&searcher, "the");
-	do {
-		ret = ct.str_search(&searcher);
-		ct.highlight(&searcher);
-		usleep(speed * 10);
+
+	ret = ct.str_search(&searcher);
+	usleep(speed * 10);
+  endwin();
 		return(0);
-	} while (!ret);
 /*
 		ct.redraw_partial_test();
     usleep(speed );
