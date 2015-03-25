@@ -143,13 +143,13 @@ typedef struct ctext_search_struct
 	// false if we aren't.
 	bool is_forward;
 
-	// the string to match
-	string query;
-
 	// this is used internally,
 	// please don't modify.
 	ctext_pos _start_pos;
 	ctext_pos _last_match;
+
+	// the string to match
+	string query;
 
 } ctext_search;
 

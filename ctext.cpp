@@ -122,7 +122,9 @@ int8_t ctext::str_search(ctext_search *to_search)
 		ctext_search in_viewport;
 		ctext_pos limit;
 
-		memcpy(&in_viewport, to_search, sizeof(in_viewport));
+		// because c++ makes life impossibly difficult.
+		memcpy(&in_viewport, to_search, sizeof(ctext_search) - sizeof(string));
+		in_viewport.query = to_search->query;
 
 		// we will say the limit is the viewport height ... this makes sure we go over
 		// the maximum extent possible.  We also make sure we do this after our first match
@@ -130,7 +132,7 @@ int8_t ctext::str_search(ctext_search *to_search)
 		limit.y = min(to_search->pos.y + this->m_win_height, (int32_t)this->m_buffer.size());
 
 		// now we iterate through the viewport highlighting all of the instances, using the 
-		// limit and the in_viewport pointer.
+		// limit and the in_viewport pointer
 		while(ret >= 0)
 		{
 			this->highlight(&in_viewport);

@@ -9,9 +9,11 @@
 int from_stdin(ctext*ct)
 {
 	char buffer[page];
-	while(fgets(buffer, page, stdin)) {
+	FILE *f = fopen("ulysses.txt", "r");
+	while(fgets(buffer, page, f)) {
 		ct->printf("%s", buffer);
 	}
+	fclose(f);
 }
 		
 int main(int argc, char **argv ){
@@ -119,13 +121,9 @@ if(0) {
 	ct.new_search(&searcher, "the");
 
 	ret = ct.str_search(&searcher);
-	usleep(speed * 10);
+	usleep(speed * 30);
   endwin();
 		return(0);
-/*
-		ct.redraw_partial_test();
-    usleep(speed );
-*/
 
   for(x = 0; x < 100; x++) {
     //ct.right();
