@@ -761,7 +761,7 @@ int8_t ctext::nprintf(const char*format, ...)
 int8_t ctext::redraw_partial_test()
 {
 	attr_t res_attrs; 
-	int16_t res;
+	int16_t res = 0;
 	int16_t res_color_pair;
 	int32_t x, y, end_x;
 	string *data;
