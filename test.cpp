@@ -119,8 +119,9 @@ if(0) {
 	ct.new_search(&searcher, "the");
 	do {
 		ret = ct.str_search(&searcher);
-		fprintf(pDebug, "h");
-		fflush(pDebug);
+		ct.highlight(&searcher);
+		usleep(speed * 10);
+		return(0);
 	} while (!ret);
 /*
 		ct.redraw_partial_test();

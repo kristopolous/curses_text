@@ -380,7 +380,7 @@ class ctext
 		int8_t ob_start();
 		int8_t ob_end();
 
-		int8_t highlight(int32_t row, int32_t col, int32_t len);
+		int8_t highlight(ctext_search *context);
 		int8_t redraw_partial_test();
 
 		// This is how you initialize a search.
@@ -392,6 +392,7 @@ class ctext
 		int8_t map_to_win(int32_t buffer_x, int32_t buffer_y, ctext_pos *win);
 		int8_t y_scroll_calculate(int32_t amount, int32_t *x, int32_t *y);
 		int16_t redraw_partial(int32_t buf_start_x, int32_t buf_start_y, int32_t buf_end_x, int32_t buf_end_y);
+		int16_t redraw_partial(ctext_pos *pos, size_t len);
 		bool m_do_draw;
 		ctext_row* add_row();
 		void add_format_if_needed();

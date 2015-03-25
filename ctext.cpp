@@ -74,6 +74,18 @@ int8_t ctext::attach_curses_window(WINDOW *win)
 	return this->redraw();
 }
 
+int8_t ctext::highlight(ctext_search *context)
+{
+	this->scroll_to(&context->pos);
+	this->m_attr_mask |= A_REVERSE;
+	this->redraw_partial(&context->pos, context->query.size());
+//	this->m_attr_mask &= ~A_REVERSE;
+	this->redraw_partial_test();
+	wrefresh(this->m_win);
+//	this->redraw();
+	return 0;
+}
+
 ctext_search *ctext::new_search(ctext_search *you_manage_this_memory, string to_search, bool is_forward, bool do_wrap)
 {
 	ctext_search *p_search = you_manage_this_memory;
@@ -116,7 +128,7 @@ int8_t ctext::str_search(ctext_search *to_search)
 		}
 		else
 		{
-			found = haystack.rfind(to_search->query, (size_t)to_search->pos.x);
+			found = haystack.rfind(to_search->query, (size_t)((to_search->pos.x == (int32_t)haystack.size()) ? to_search->pos.x : to_search->pos.x - 1));
 		}
 
 		if(found == string::npos) 
@@ -719,6 +731,11 @@ int8_t ctext::redraw_partial_test()
 	return 0;
 }
 
+int16_t ctext::redraw_partial(ctext_pos *pos, size_t len)
+{
+	return this->redraw_partial(pos->x, pos->y, pos->x + len, pos->y);
+}
+
 // 
 // redraw_partial takes a buffer offset and sees if it is
 // to be drawn within the current view port, which is specified
@@ -839,6 +856,10 @@ int16_t ctext::redraw_partial(
 						// if there was no format specified.
 						num_to_add = min((p_format + 1)->offset - buf_offset_x, num_to_add); 
 					}
+				} 
+				else if(this->m_attr_mask)
+				{
+					wattr_set(this->m_win, this->m_attr_mask, 0, 0);
 				}
 
 				// if we can get that many characters than we grab them
