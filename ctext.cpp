@@ -45,7 +45,6 @@ ctext::ctext(WINDOW *win, ctext_config *config)
 	}
 
 	this->m_pos_start.x = this->m_pos_start.y = 0;
-	this->m_pos_end.x = this->m_pos_end.y = 0;
 
 	this->m_attr_mask = 0;
 
@@ -106,17 +105,31 @@ int8_t ctext::str_search(ctext_search *to_search)
 {
 	int8_t search_ret, scroll_ret;
 
-	search_ret = this->str_search_single(to_search);
+	// This makes sure that we scroll to a new y row
+	// if multiple matches are on the same viewport row.
+	for(;;)
+	{
+		search_ret = this->str_search_single(to_search);
+		if(search_ret == -1) 
+		{
+			break;
+		}
+
+		scroll_ret = this->direct_scroll(&to_search->pos);
+		if(!scroll_ret)
+		{
+			break;
+		}
+	}
 
 	// This means that it was found somewhere and our
 	// pointer has been moved forward
 	if(search_ret >= 0) 
 	{
 		// We can do a general scroll_to and redraw.
-		scroll_ret = this->direct_scroll(&to_search->pos);
 		this->redraw();
 
-		// we move the viewport pointer through the current viewport,
+		// We move the viewport pointer through the current viewport,
 		// highlighting all matching instances.
 		ctext_search in_viewport;
 		ctext_pos limit;
@@ -265,7 +278,7 @@ int8_t ctext::direct_scroll(ctext_pos*p)
 int8_t ctext::direct_scroll(int32_t x, int32_t y)
 {
 	ctext_pos start;
-	memcpy(&start, this->m_pos_start, sizeof(ctext_pos));
+	memcpy(&start, &this->m_pos_start, sizeof(ctext_pos));
 
 	this->get_win_size();
 
