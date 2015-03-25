@@ -108,6 +108,16 @@ ctext_search *ctext::new_search(ctext_search *you_manage_this_memory, string to_
 
 int8_t ctext::str_search(ctext_search *to_search)
 {
+	// we move the viewport pointer through the current viewport,
+	// highlighting all matching instances.
+	ctext_search in_viewport;
+	memcpy(&in_viewport, to_search, sizeof(in_viewport));
+
+	this->str_search(to_search);
+}
+
+int8_t ctext::str_search_single(ctext_search *to_search)
+{
 	int32_t size = (int32_t)this->m_buffer.size();
 	size_t found;
 	string haystack;
@@ -390,7 +400,7 @@ int8_t ctext::map_to_win(int32_t buffer_x, int32_t buffer_y, ctext_pos*win)
 	return ret;
 }
 
-int8_t ctext::y_scroll_calculate(int32_t amount, int32_t *x, int32_t *y)
+int8_t ctext::y_scroll_calculate(int32_t amount, ctext_pos *pos)
 {
 	if(this->m_config.m_do_wrap)
 	{
@@ -432,13 +442,13 @@ int8_t ctext::y_scroll_calculate(int32_t amount, int32_t *x, int32_t *y)
 				new_offset = p_row->data.size() - p_row->data.size() % this->m_win_width;
 			}
 		}
-		*x = new_offset;
-		*y = new_y;
+		pos->x = new_offset;
+		pos->y = new_y;
 	}
 	else
 	{
-		*x = this->m_pos_start.x;
-		*y = this->m_pos_start.y + amount;
+		pos->x = this->m_pos_start.x;
+		pos->y = this->m_pos_start.y + amount;
 	}
 
 	return 0;
@@ -447,9 +457,9 @@ int8_t ctext::y_scroll_calculate(int32_t amount, int32_t *x, int32_t *y)
 
 int32_t ctext::down(int32_t amount) 
 {
-	int32_t new_x, new_y;
-	this->y_scroll_calculate(amount, &new_x, &new_y);
-	return this->scroll_to(new_x, new_y);
+	ctext_pos new_pos;
+	this->y_scroll_calculate(amount, &new_pos);
+	return this->scroll_to(&new_pos);
 }
 
 int32_t ctext::jump_to_first_line()

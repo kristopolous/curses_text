@@ -390,7 +390,7 @@ class ctext
 
 	private:
 		int8_t map_to_win(int32_t buffer_x, int32_t buffer_y, ctext_pos *win);
-		int8_t y_scroll_calculate(int32_t amount, int32_t *x, int32_t *y);
+		int8_t y_scroll_calculate(int32_t amount, ctext_pos *pos);
 		int16_t redraw_partial(int32_t buf_start_x, int32_t buf_start_y, int32_t buf_end_x, int32_t buf_end_y);
 		int16_t redraw_partial(ctext_pos *pos, size_t len);
 		bool m_do_draw;
@@ -398,8 +398,9 @@ class ctext
 		void add_format_if_needed();
 		int8_t rebuf();
 		int8_t direct_scroll(int32_t x, int32_t y);
-		int8_t direct_scroll(ctext_pos*pos);
+		int8_t direct_scroll(ctext_pos *pos);
 		attr_t m_attr_mask;
+		int8_t str_search_single(ctext_search *to_search);
 
 		string *m_query;
 
