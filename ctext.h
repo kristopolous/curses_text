@@ -358,7 +358,7 @@ class ctext
 		int8_t nprintf(const char*format, ...);
 
 		//
-		// under normal (printf) conditions, this does not
+		// Under normal (printf) conditions, this does not
 		// need to be called explicitly and is instead called
 		// each time a printf is called.
 		//
@@ -396,16 +396,27 @@ class ctext
 		ctext_row* add_row();
 		void add_format_if_needed();
 		int8_t rebuf();
+		void get_win_size();
+
+		// 
+		// Directly scroll to an x/y location with respect to
+		// the buffer without any redraw or other calculation.
+		//
+		// This just moves the internal pointers forward with 
+		// respect to the internal configuration.
+		//
+		// The return value is 0 iff the value of the scroll
+		// was changed.  Otherwise, if nothing changed in the
+		// request, -1 is returned.
+		//
 		int8_t direct_scroll(int32_t x, int32_t y);
 		int8_t direct_scroll(ctext_pos *pos);
 
-		// a mast to apply to the text being rendered.
+		// A mast to apply to the text being rendered.
 		attr_t m_attr_mask;
 		int8_t str_search_single(ctext_search *to_search, ctext_pos *limit = 0);
 
-		string *m_query;
-
-		// whether or not to draw when new text comes in or to skip the step.
+		// Whether or not to draw when new text comes in or to skip the step.
 		bool m_do_draw;
 		WINDOW *m_win;
 		ctext_config m_config;
@@ -415,12 +426,8 @@ class ctext
 		// respect to the current viewport
 		ctext_pos m_pos_start;
 		
-		// The end point of the buffer
-		ctext_pos m_pos_end;
-
 		int32_t m_max_y;
 
-		void get_win_size();
 		int32_t m_win_width;
 		int32_t m_win_height;
 		ofstream *m_debug;

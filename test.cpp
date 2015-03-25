@@ -43,7 +43,7 @@ int main(int argc, char **argv ){
 
   // add my handler
   config.m_bounding_box = true;
-  config.m_buffer_size = 30;
+  config.m_buffer_size = 3000;
   //config.m_scroll_on_append = true;
   config.m_do_wrap = true;
 	config.m_auto_newline = false;
@@ -120,8 +120,11 @@ if(0) {
 	ctext_search searcher;
 	ct.new_search(&searcher, "the");
 
-	ret = ct.str_search(&searcher);
-	usleep(speed * 30);
+	do {
+		ret = ct.str_search(&searcher);
+		usleep(speed * 3);
+	} while (!ret);
+
   endwin();
 		return(0);
 

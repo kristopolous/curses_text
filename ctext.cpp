@@ -34,7 +34,6 @@ ctext::ctext(WINDOW *win, ctext_config *config)
 	*/
 
 	this->m_do_draw = true;
-	this->m_query = 0;
 	
 	if(config) 
 	{
@@ -109,11 +108,11 @@ int8_t ctext::str_search(ctext_search *to_search)
 
 	ret = this->str_search_single(to_search);
 
-	// this means that it was found somewhere and our
+	// This means that it was found somewhere and our
 	// pointer has been moved forward
 	if(ret >= 0) 
 	{
-		// we can do a general scroll_to and redraw
+		// We can do a general scroll_to and redraw.
 		this->direct_scroll(&to_search->pos);
 		this->redraw();
 
@@ -264,11 +263,21 @@ int8_t ctext::direct_scroll(ctext_pos*p)
 
 int8_t ctext::direct_scroll(int32_t x, int32_t y)
 {
+	this->get_win_size();
 	if(this->m_config.m_bounding_box) 
 	{
 		y = min(y, this->m_max_y - this->m_win_height);
 		x = max(0, x);
 		y = max(0, y);
+	}
+
+	// Under this context we should only be x-scrolling
+	// to a modulus of a windows width
+	if(this->m_config.m_do_wrap)
+	{
+		// We always go *under* to make sure that the
+		// content appears in the viewport.
+		x -= x % this->m_win_width;
 	}
 
 	this->m_pos_start.x = x;
