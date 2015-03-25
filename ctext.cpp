@@ -76,12 +76,9 @@ int8_t ctext::attach_curses_window(WINDOW *win)
 
 int8_t ctext::highlight(ctext_search *context)
 {
-	//this->direct_scroll(&context->pos);
 	this->m_attr_mask |= A_REVERSE;
 	this->redraw_partial(&context->pos, context->query.size());
 	this->m_attr_mask &= ~A_REVERSE;
-	wrefresh(this->m_win);
-//	this->redraw();
 	return 0;
 }
 
@@ -108,15 +105,41 @@ ctext_search *ctext::new_search(ctext_search *you_manage_this_memory, string to_
 
 int8_t ctext::str_search(ctext_search *to_search)
 {
-	// we move the viewport pointer through the current viewport,
-	// highlighting all matching instances.
-	ctext_search in_viewport;
-	memcpy(&in_viewport, to_search, sizeof(in_viewport));
+	int8_t ret;
 
-	this->str_search(to_search);
+	ret = this->str_search(to_search);
+
+	// this means that it was found somewhere and our
+	// pointer has been moved forward
+	if(ret >= 0) 
+	{
+		// we can do a general scroll_to and redraw
+		this->direct_scroll(&to_search->pos);
+		this->redraw();
+
+		// we move the viewport pointer through the current viewport,
+		// highlighting all matching instances.
+		ctext_search in_viewport;
+		ctext_pos limit;
+
+		memcpy(&in_viewport, to_search, sizeof(in_viewport));
+
+		// we will say the limit is the viewport height ... this makes sure we go over
+		// the maximum extent possible.  We also make sure we do this after our first match
+		// otherwise this would reflect our current viewport, shameful!
+		limit.y = min(to_search->pos.y + this->m_win_height, (int32_t)this->m_buffer.data.size());
+
+		// now we iterate through the viewport highlighting all of the instances, using the 
+		// limit and the in_viewport pointer.
+
+	}
+	// refresh our window and we're done with it.
+	wrefresh(this->m_win);
+
+	return 0;
 }
 
-int8_t ctext::str_search_single(ctext_search *to_search)
+int8_t ctext::str_search_single(ctext_search *to_search, ctext_pos *limit)
 {
 	int32_t size = (int32_t)this->m_buffer.size();
 	size_t found;
@@ -162,8 +185,9 @@ int8_t ctext::str_search_single(ctext_search *to_search)
 			// The edge case here is if there are no matches and we ARE wrapping,
 			// we don't want the idiot case of going through the haystack endlessly
 			// like a chump and locking up the application.
-			if(to_search->pos.y == to_search->_start_pos.y && 
-				(to_search->do_wrap == false || to_search->_last_match.y == -1)
+			if(
+					(to_search->pos.y == to_search->_start_pos.y && (to_search->do_wrap == false || to_search->_last_match.y == -1)) ||
+					(limit && to_search->pos.y > limit->y)
 			)
 			{
 				return -1;

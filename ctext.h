@@ -393,17 +393,20 @@ class ctext
 		int8_t y_scroll_calculate(int32_t amount, ctext_pos *pos);
 		int16_t redraw_partial(int32_t buf_start_x, int32_t buf_start_y, int32_t buf_end_x, int32_t buf_end_y);
 		int16_t redraw_partial(ctext_pos *pos, size_t len);
-		bool m_do_draw;
 		ctext_row* add_row();
 		void add_format_if_needed();
 		int8_t rebuf();
 		int8_t direct_scroll(int32_t x, int32_t y);
 		int8_t direct_scroll(ctext_pos *pos);
+
+		// a mast to apply to the text being rendered.
 		attr_t m_attr_mask;
-		int8_t str_search_single(ctext_search *to_search);
+		int8_t str_search_single(ctext_search *to_search, ctext_pos *limit = 0);
 
 		string *m_query;
 
+		// whether or not to draw when new text comes in or to skip the step.
+		bool m_do_draw;
 		WINDOW *m_win;
 		ctext_config m_config;
 		ctext_buffer m_buffer;
