@@ -104,16 +104,16 @@ ctext_search *ctext::new_search(ctext_search *you_manage_this_memory, string to_
 
 int8_t ctext::str_search(ctext_search *to_search)
 {
-	int8_t ret;
+	int8_t search_ret, scroll_ret;
 
-	ret = this->str_search_single(to_search);
+	search_ret = this->str_search_single(to_search);
 
 	// This means that it was found somewhere and our
 	// pointer has been moved forward
-	if(ret >= 0) 
+	if(search_ret >= 0) 
 	{
 		// We can do a general scroll_to and redraw.
-		this->direct_scroll(&to_search->pos);
+		scroll_ret = this->direct_scroll(&to_search->pos);
 		this->redraw();
 
 		// we move the viewport pointer through the current viewport,
@@ -132,10 +132,10 @@ int8_t ctext::str_search(ctext_search *to_search)
 
 		// now we iterate through the viewport highlighting all of the instances, using the 
 		// limit and the in_viewport pointer
-		while(ret >= 0)
+		while(search_ret >= 0)
 		{
 			this->highlight(&in_viewport);
-			ret = this->str_search_single(&in_viewport, &limit);
+			search_ret = this->str_search_single(&in_viewport, &limit);
 		}
 	}
 	// refresh our window and we're done with it.
@@ -233,6 +233,7 @@ int32_t ctext::clear(int32_t row_count)
 	if(this->m_config.m_scroll_on_append)
 	{
 		this->get_win_size();
+
 		// now we force it.
 		this->direct_scroll(0, this->m_buffer.size() - this->m_win_height);
 	}
@@ -263,7 +264,11 @@ int8_t ctext::direct_scroll(ctext_pos*p)
 
 int8_t ctext::direct_scroll(int32_t x, int32_t y)
 {
+	ctext_pos start;
+	memcpy(&start, this->m_pos_start, sizeof(ctext_pos));
+
 	this->get_win_size();
+
 	if(this->m_config.m_bounding_box) 
 	{
 		y = min(y, this->m_max_y - this->m_win_height);
@@ -283,7 +288,9 @@ int8_t ctext::direct_scroll(int32_t x, int32_t y)
 	this->m_pos_start.x = x;
 	this->m_pos_start.y = y;
 
-	return 0;
+	// If the values have changed and we have actively scrolled,
+	// return 0, otherwise return -1.
+	return (start.x != x || start.y != y) ? 0 : -1;
 }
 
 int8_t ctext::scroll_to(ctext_pos *pos)
@@ -683,7 +690,8 @@ int8_t ctext::vprintf(const char*format, va_list ap)
 	if(this->m_config.m_scroll_on_append)
 	{
 		this->get_win_size();
-		// now we force it.
+
+		// Now we force it.
 		this->direct_scroll(0, this->m_buffer.size() - this->m_win_height);
 	}
 
