@@ -45,8 +45,8 @@ ctext::ctext(WINDOW *win, ctext_config *config)
 		memcpy(&this->m_config, &config_default, sizeof(ctext_config));
 	}
 
-	this->m_pos.x = 0;
-	this->m_pos.y = 0;
+	this->m_pos_start.x = this->m_pos_start.y = 0;
+	this->m_pos_end.x = this->m_pos_end.y = 0;
 
 	this->m_attr_mask = 0;
 
@@ -231,8 +231,8 @@ int8_t ctext::direct_scroll(int32_t x, int32_t y)
 		y = max(0, y);
 	}
 
-	this->m_pos.x = x;
-	this->m_pos.y = y;
+	this->m_pos_start.x = x;
+	this->m_pos_start.y = y;
 
 	return 0;
 }
@@ -255,8 +255,8 @@ int8_t ctext::get_offset(ctext_pos *pos)
 
 int8_t ctext::get_offset(int32_t*x, int32_t*y)
 {
-	*x = this->m_pos.x;
-	*y = this->m_pos.y;
+	*x = this->m_pos_start.x;
+	*y = this->m_pos_start.y;
 
 	return 0;
 }
@@ -264,7 +264,7 @@ int8_t ctext::get_offset(int32_t*x, int32_t*y)
 int8_t ctext::get_offset_percent(float*percent)
 {
 	this->get_win_size();
-	*percent = (float)(this->m_pos.y) / (this->m_max_y - this->m_win_height);
+	*percent = (float)(this->m_pos_start.y) / (this->m_max_y - this->m_win_height);
 
 	return 0;
 }
@@ -309,18 +309,18 @@ int8_t ctext::map_to_win(int32_t buffer_x, int32_t buffer_y, ctext_pos*win)
 	if(!this->m_config.m_do_wrap)
 	{
 		// these are trivial.
-		win->y = buffer_y - this->m_pos.y;
-		win->x = buffer_x - this->m_pos.x;
+		win->y = buffer_y - this->m_pos_start.y;
+		win->x = buffer_x - this->m_pos_start.x;
 
-		return ((buffer_x < this->m_pos.x)) | ((buffer_x > this->m_pos.x + this->m_win_width) << 1)
-			| ((buffer_y < this->m_pos.y) << 2) | ((buffer_y > this->m_pos.y + this->m_win_height) << 3);
+		return ((buffer_x < this->m_pos_start.x)) | ((buffer_x > this->m_pos_start.x + this->m_win_width) << 1)
+			| ((buffer_y < this->m_pos_start.y) << 2) | ((buffer_y > this->m_pos_start.y + this->m_win_height) << 3);
 	}
 	// Otherwise it's much more challenging.
 	else
 	{
 		// If we are below the fold or we are at the first line and before
 		// the start of where we ought to be drawing
-		if(buffer_y < this->m_pos.y || (buffer_y == this->m_pos.y && buffer_x < this->m_pos.x))
+		if(buffer_y < this->m_pos_start.y || (buffer_y == this->m_pos_start.y && buffer_x < this->m_pos_start.x))
 		{
 			// we omit win calculations here since they
 			// would be more expensive then we'd like
@@ -331,9 +331,9 @@ int8_t ctext::map_to_win(int32_t buffer_x, int32_t buffer_y, ctext_pos*win)
 		else 
 		{
 			// to see if it's an overflow y is a bit harder
-			int32_t new_y = this->m_pos.y;
+			int32_t new_y = this->m_pos_start.y;
 
-			int32_t new_offset = this->m_pos.x;
+			int32_t new_offset = this->m_pos_start.x;
 
 			string *data = &this->m_buffer[new_y].data;
 
@@ -394,9 +394,9 @@ int8_t ctext::y_scroll_calculate(int32_t amount, int32_t *x, int32_t *y)
 {
 	if(this->m_config.m_do_wrap)
 	{
-		int32_t new_y = this->m_pos.y;
-		int32_t new_offset = this->m_pos.x;
-		ctext_row *p_row = &this->m_buffer[this->m_pos.y];	
+		int32_t new_y = this->m_pos_start.y;
+		int32_t new_offset = this->m_pos_start.x;
+		ctext_row *p_row = &this->m_buffer[this->m_pos_start.y];	
 
 		this->get_win_size();
 
@@ -437,8 +437,8 @@ int8_t ctext::y_scroll_calculate(int32_t amount, int32_t *x, int32_t *y)
 	}
 	else
 	{
-		*x = this->m_pos.x;
-		*y = this->m_pos.y + amount;
+		*x = this->m_pos_start.x;
+		*y = this->m_pos_start.y + amount;
 	}
 
 	return 0;
@@ -454,23 +454,23 @@ int32_t ctext::down(int32_t amount)
 
 int32_t ctext::jump_to_first_line()
 {
-	int32_t current_line = this->m_pos.y;
+	int32_t current_line = this->m_pos_start.y;
 
 	// now we try to scroll above the first
 	// line.	the bounding box rule will
 	// take care of the differences for us.
-	this->scroll_to(this->m_pos.x, 0 - this->m_win_height + 1);
+	this->scroll_to(this->m_pos_start.x, 0 - this->m_win_height + 1);
 
-	return current_line - this->m_pos.y;
+	return current_line - this->m_pos_start.y;
 }
 
 int32_t ctext::jump_to_last_line()
 {
-	int32_t current_line = this->m_pos.y;
+	int32_t current_line = this->m_pos_start.y;
 
 	this->get_win_size();
-	this->scroll_to(this->m_pos.x, this->m_max_y - 1);
-	return current_line - this->m_pos.y;
+	this->scroll_to(this->m_pos_start.x, this->m_max_y - 1);
+	return current_line - this->m_pos_start.y;
 }
 
 int32_t ctext::left(int32_t amount) 
@@ -480,7 +480,7 @@ int32_t ctext::left(int32_t amount)
 
 int32_t ctext::right(int32_t amount) 
 {
-	return this->scroll_to(this->m_pos.x + amount, this->m_pos.y);
+	return this->scroll_to(this->m_pos_start.x + amount, this->m_pos_start.y);
 }
 
 void ctext::get_win_size() 
@@ -510,7 +510,7 @@ int8_t ctext::rebuf()
 	// issue a rescroll on exactly our previous parameters. This may
 	// force us inward or may retain our position.
 	// 
-	return this->direct_scroll(this->m_pos.x, this->m_pos.y);
+	return this->direct_scroll(this->m_pos_start.x, this->m_pos_start.y);
 }
 
 void ctext::add_format_if_needed()
@@ -703,8 +703,8 @@ int8_t ctext::redraw_partial_test()
 	this->rebuf();
 	werase(this->m_win);
 
-	x = this->m_pos.x;
-	y = this->m_pos.y;
+	x = this->m_pos_start.x;
+	y = this->m_pos_start.y;
 	data = &this->m_buffer[y].data;
 
 	while(!(res & CTEXT_OVER_Y)) 
@@ -743,7 +743,7 @@ int16_t ctext::redraw_partial(ctext_pos *pos, size_t len)
 // 
 // redraw_partial takes a buffer offset and sees if it is
 // to be drawn within the current view port, which is specified
-// by m_pos.x and m_pos.y. 
+// by m_pos_start.x and m_pos_start.y. 
 //
 int16_t ctext::redraw_partial(
 		int32_t buf_start_x, int32_t buf_start_y, 
@@ -783,8 +783,8 @@ int16_t ctext::redraw_partial(
 	}
 
 	//
-	// We start as m_pos.y in our list and move up to
-	// m_pos.y + m_win_height except in the case of 
+	// We start as m_pos_start.y in our list and move up to
+	// m_pos_start.y + m_win_height except in the case of 
 	// wrap around.  Because of this special case,
 	// we compute when to exit slightly differently.
 	//
@@ -795,7 +795,7 @@ int16_t ctext::redraw_partial(
 	int32_t buf_current_y = buf_start_y;
 
 	// this is for horizontal scroll.
-	int32_t start_char = max(0, this->m_pos.x);
+	int32_t start_char = max(0, this->m_pos_start.x);
 	
 	while(win_current_y <= win_end.y)
 	{
@@ -819,7 +819,7 @@ int16_t ctext::redraw_partial(
 			p_format = p_source->format.begin();
 
 			// Reset the offset.
-			win_current_x = -min(0, (int32_t)this->m_pos.x);
+			win_current_x = -min(0, (int32_t)this->m_pos_start.x);
 
 			if(is_first_line)
 			{
@@ -991,13 +991,13 @@ int8_t ctext::redraw()
 	// Regardless of whether this is append to top
 	// or bottom we generate top to bottom.
 
-	int32_t start_char = max(0, this->m_pos.x);
+	int32_t start_char = max(0, this->m_pos_start.x);
 	int32_t buf_offset = start_char;
 	// the endchar will be in the substr
 	
 	//
-	// We start as m_pos.y in our list and move up to
-	// m_pos.y + m_win_height except in the case of 
+	// We start as m_pos_start.y in our list and move up to
+	// m_pos_start.y + m_win_height except in the case of 
 	// wrap around.  Because of this special case,
 	// we compute when to exit slightly differently.
 	//
@@ -1007,7 +1007,7 @@ int8_t ctext::redraw()
 	int32_t line = 0;
 
 	// start at the beginning of the buffer.
-	int32_t index = this->m_pos.y;
+	int32_t index = this->m_pos_start.y;
 	int32_t directionality = +1;
 	int32_t cutoff;
 	int32_t num_added = 0;
@@ -1022,7 +1022,7 @@ int8_t ctext::redraw()
 	if(this->m_config.m_append_top)
 	{
 		directionality = -1;
-		index = this->m_pos.y + this->m_win_height - 1;
+		index = this->m_pos_start.y + this->m_win_height - 1;
 	}
 
 	while(line <= this->m_win_height)
@@ -1037,12 +1037,12 @@ int8_t ctext::redraw()
 			p_format = p_source->format.begin();
 
 			// Reset the offset.
-			win_offset = -min(0, (int32_t)this->m_pos.x);
+			win_offset = -min(0, (int32_t)this->m_pos_start.x);
 			buf_offset = start_char;
 
 			if(this->m_config.m_do_wrap)
 			{
-				buf_offset = is_first_line ? this->m_pos.x : 0;
+				buf_offset = is_first_line ? this->m_pos_start.x : 0;
 			}
 
 			for(;;) 

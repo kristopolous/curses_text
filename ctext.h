@@ -407,7 +407,12 @@ class ctext
 		ctext_config m_config;
 		ctext_buffer m_buffer;
 
-		ctext_pos m_pos;
+		// The start point of the buffer with
+		// respect to the current viewport
+		ctext_pos m_pos_start;
+		
+		// The end point of the buffer
+		ctext_pos m_pos_end;
 
 		int32_t m_max_y;
 
