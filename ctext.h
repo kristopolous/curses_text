@@ -397,6 +397,10 @@ class ctext
 		void add_format_if_needed();
 		int8_t rebuf();
 		void get_win_size();
+		
+		// Highlights the matches in he current vieport without
+		// doing any scrolling.
+		int8_t highlight_matches(ctext_search *context);
 
 		// 
 		// Directly scroll to an x/y location with respect to
@@ -414,7 +418,16 @@ class ctext
 
 		// A mast to apply to the text being rendered.
 		attr_t m_attr_mask;
-		int8_t str_search_single(ctext_search *to_search, ctext_pos *limit = 0);
+
+		//
+		// Leave the new_pos_out as null for an idempotent version of this function -
+		// as in one that doesn't modify the to_search_in variable in returning a value.
+		//
+		// It's perfectly acceptable to pass the same variable as both to_search_in and
+		// new_pos_out if you want to execute it with a side-effect - as much of the
+		// implementation actually does.
+		//
+		int8_t str_search_single(ctext_search *to_search_in, ctext_search *new_pos_out = 0, ctext_pos *limit = 0);
 
 		// Whether or not to draw when new text comes in or to skip the step.
 		bool m_do_draw;

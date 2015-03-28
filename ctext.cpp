@@ -101,6 +101,18 @@ ctext_search *ctext::new_search(ctext_search *you_manage_this_memory, string to_
 	return p_search;
 }
 
+int8_t ctext::highlight_matches(ctext_search *to_search)
+{
+	return 0;
+}
+
+void search_copy(ctext_search *dst, ctext_search *src)
+{
+  // Because c++ makes life impossibly difficult.
+	memcpy(dst, src, sizeof(ctext_search) - sizeof(string));
+	dst->query = src->query;
+}
+
 int8_t ctext::str_search(ctext_search *to_search)
 {
 	int8_t search_ret, scroll_ret;
@@ -109,7 +121,7 @@ int8_t ctext::str_search(ctext_search *to_search)
 	// if multiple matches are on the same viewport row.
 	for(;;)
 	{
-		search_ret = this->str_search_single(to_search);
+		search_ret = this->str_search_single(to_search, to_search);
 		if(search_ret == -1) 
 		{
 			break;
@@ -134,9 +146,7 @@ int8_t ctext::str_search(ctext_search *to_search)
 		ctext_search in_viewport;
 		ctext_pos limit;
 
-		// Because c++ makes life impossibly difficult.
-		memcpy(&in_viewport, to_search, sizeof(ctext_search) - sizeof(string));
-		in_viewport.query = to_search->query;
+		search_copy(&in_viewport, to_search);
 
 		// We will say the limit is the viewport height ... this makes sure we go over
 		// the maximum extent possible.  We also make sure we do this after our first match
@@ -148,7 +158,7 @@ int8_t ctext::str_search(ctext_search *to_search)
 		while(search_ret >= 0)
 		{
 			this->highlight(&in_viewport);
-			search_ret = this->str_search_single(&in_viewport, &limit);
+			search_ret = this->str_search_single(&in_viewport, &in_viewport, &limit);
 		}
 	}
 	// Refresh our window and we're done with it.
@@ -157,55 +167,66 @@ int8_t ctext::str_search(ctext_search *to_search)
 	return 0;
 }
 
-int8_t ctext::str_search_single(ctext_search *to_search, ctext_pos *limit)
+int8_t ctext::str_search_single(ctext_search *to_search_in, ctext_search *new_pos_out, ctext_pos *limit)
 {
 	int32_t size = (int32_t)this->m_buffer.size();
 	size_t found;
 	string haystack;
+	ctext_search res, *out;
 
-	if(!to_search)
+	if(!to_search_in)
 	{
 		return -1;
 	}
 
+	if(!new_pos_out) 
+	{
+		search_copy(&res, to_search_in);
+		out = &res;
+	} 
+	else 
+	{
+		out = new_pos_out;
+	}
+
 	for(;;) 
 	{
-		haystack = this->m_buffer[to_search->pos.y].data;
+		haystack = this->m_buffer[out->pos.y].data;
 
-		if(to_search->is_forward)
+		if(out->is_forward)
 		{
-			found = haystack.find(to_search->query, (size_t)( (to_search->pos.x == -2) ? to_search->pos.x + 2 : to_search->pos.x + 1));
+			found = haystack.find(to_search_in->query, (size_t)( (out->pos.x == -2) ? out->pos.x + 2 : out->pos.x + 1));
 		}
 		else
 		{
-			found = haystack.rfind(to_search->query, (size_t)((to_search->pos.x == (int32_t)haystack.size()) ? to_search->pos.x : to_search->pos.x - 1));
+			found = haystack.rfind(to_search_in->query, (size_t)( (out->pos.x == (int32_t)haystack.size()) ? out->pos.x : out->pos.x - 1));
 		}
 
 		if(found == string::npos) 
 		{
-			if(to_search->is_forward)
+			if(out->is_forward)
 			{
-				to_search->pos.y = (to_search->pos.y + 1) % size;
-				to_search->pos.x = -2;
+				out->pos.y = (out->pos.y + 1) % size;
+				out->pos.x = -2;
 			}
 			else
 			{
-				to_search->pos.y--;
+				out->pos.y--;
 
 				// Wrap if we are going backwards.
-				if(to_search->pos.y == -1)
+				if(out->pos.y == -1)
 				{
-					to_search->pos.y = size - 1;
+					out->pos.y = size - 1;
 				}
-				to_search->pos.x = (int32_t)this->m_buffer[to_search->pos.y].data.size();
+				out->pos.x = (int32_t)this->m_buffer[out->pos.y].data.size();
 			}
 
 			// The edge case here is if there are no matches and we ARE wrapping,
 			// we don't want the idiot case of going through the haystack endlessly
 			// like a chump and locking up the application.
 			if(
-					(to_search->pos.y == to_search->_start_pos.y && (to_search->do_wrap == false || to_search->_last_match.y == -1)) ||
-					(limit && to_search->pos.y > limit->y)
+					(out->pos.y == out->_start_pos.y && (out->do_wrap == false || out->_last_match.y == -1)) ||
+					(limit && out->pos.y > limit->y)
 			)
 			{
 				return -1;
@@ -215,8 +236,8 @@ int8_t ctext::str_search_single(ctext_search *to_search, ctext_pos *limit)
 		{
 			// This is all we really care about, we don't need
 			// to look at the x value
-			to_search->_last_match.y = to_search->pos.y;
-			to_search->pos.x = (int32_t)found;
+			out->_last_match.y = out->pos.y;
+			out->pos.x = (int32_t)found;
 			break;
 		}
 	}

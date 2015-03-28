@@ -123,6 +123,8 @@ if(0) {
 	do {
 		ret = ct.str_search(&searcher);
 		usleep(speed / 3);
+		ct.down();
+		usleep(speed);
 	} while (!ret);
 
   endwin();
