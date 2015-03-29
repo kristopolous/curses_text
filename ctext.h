@@ -380,7 +380,7 @@ class ctext
 		int8_t ob_start();
 		int8_t ob_end();
 
-		int8_t highlight(ctext_search *context);
+		int8_t highlight(ctext_search *context = 0);
 		int8_t redraw_partial_test();
 
 		// This is how you initialize a search.
@@ -400,7 +400,7 @@ class ctext
 		
 		// Highlights the matches in he current vieport without
 		// doing any scrolling.
-		int8_t highlight_matches(ctext_search *context);
+		int8_t highlight_matches(ctext_search *context = 0);
 
 		// 
 		// Directly scroll to an x/y location with respect to
@@ -434,6 +434,7 @@ class ctext
 		WINDOW *m_win;
 		ctext_config m_config;
 		ctext_buffer m_buffer;
+		ctext_search *m_last_search;
 
 		// The start point of the buffer with
 		// respect to the current viewport

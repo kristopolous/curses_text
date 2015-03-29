@@ -24,6 +24,13 @@ const ctext_config config_default = {
 	.m_auto_newline = CTEXT_DEFAULT_AUTO_NEWLINE,
 };
 
+void search_copy(ctext_search *dst, ctext_search *src)
+{
+  // Because c++ makes life impossibly difficult.
+	memcpy(dst, src, sizeof(ctext_search) - sizeof(string));
+	dst->query = src->query;
+}
+
 ctext::ctext(WINDOW *win, ctext_config *config)
 {
 	this->m_win = win;
@@ -47,6 +54,7 @@ ctext::ctext(WINDOW *win, ctext_config *config)
 	this->m_pos_start.x = this->m_pos_start.y = 0;
 
 	this->m_attr_mask = 0;
+	this->m_last_search = 0;
 
 	this->m_max_y = 0;
 
@@ -103,19 +111,50 @@ ctext_search *ctext::new_search(ctext_search *you_manage_this_memory, string to_
 
 int8_t ctext::highlight_matches(ctext_search *to_search)
 {
+	int8_t search_ret = 1;
+
+	if(!to_search)
+	{
+		to_search = this->m_last_search;
+
+		if(!to_search) 
+		{
+			return 0;
+		}
+	}
+
+	// We move the viewport pointer through the current viewport,
+	// highlighting all matching instances.
+	ctext_search in_viewport;
+	ctext_pos limit;
+
+	search_copy(&in_viewport, to_search);
+
+	// We will say the limit is the viewport height ... this makes sure we go over
+	// the maximum extent possible.  We also make sure we do this after our first match
+	// otherwise this would reflect our current viewport, shameful!
+	limit.y = min(to_search->pos.y + this->m_win_height, (int32_t)this->m_buffer.size());
+
+	// Now we iterate through the viewport highlighting all of the instances, using the 
+	// limit and the in_viewport pointer
+	while(search_ret >= 0)
+	{
+		this->highlight(&in_viewport);
+		search_ret = this->str_search_single(&in_viewport, &in_viewport, &limit);
+	}
+
+	// Refresh our window and we're done with it.
+	wrefresh(this->m_win);
+
 	return 0;
 }
 
-void search_copy(ctext_search *dst, ctext_search *src)
-{
-  // Because c++ makes life impossibly difficult.
-	memcpy(dst, src, sizeof(ctext_search) - sizeof(string));
-	dst->query = src->query;
-}
 
 int8_t ctext::str_search(ctext_search *to_search)
 {
 	int8_t search_ret, scroll_ret;
+
+	this->m_last_search = to_search;
 
 	// This makes sure that we scroll to a new y row
 	// if multiple matches are on the same viewport row.
@@ -141,25 +180,7 @@ int8_t ctext::str_search(ctext_search *to_search)
 		// We can do a general scroll_to and redraw.
 		this->redraw();
 
-		// We move the viewport pointer through the current viewport,
-		// highlighting all matching instances.
-		ctext_search in_viewport;
-		ctext_pos limit;
-
-		search_copy(&in_viewport, to_search);
-
-		// We will say the limit is the viewport height ... this makes sure we go over
-		// the maximum extent possible.  We also make sure we do this after our first match
-		// otherwise this would reflect our current viewport, shameful!
-		limit.y = min(to_search->pos.y + this->m_win_height, (int32_t)this->m_buffer.size());
-
-		// Now we iterate through the viewport highlighting all of the instances, using the 
-		// limit and the in_viewport pointer
-		while(search_ret >= 0)
-		{
-			this->highlight(&in_viewport);
-			search_ret = this->str_search_single(&in_viewport, &in_viewport, &limit);
-		}
+		this->highlight_matches();
 	}
 	// Refresh our window and we're done with it.
 	wrefresh(this->m_win);
