@@ -62,6 +62,13 @@ ctext::ctext(WINDOW *win, ctext_config *config)
 	this->add_row();
 }
 
+int8_t ctext::search_off()
+{
+	int8_t ret = (this->m_last_search != 0);
+	this->m_last_search = 0;
+	return ret; 
+}
+
 int8_t ctext::set_config(ctext_config *config)
 {
 	memcpy(&this->m_config, config, sizeof(ctext_config));
@@ -82,9 +89,14 @@ int8_t ctext::attach_curses_window(WINDOW *win)
 
 int8_t ctext::highlight(ctext_search *context)
 {
-	this->m_attr_mask |= A_REVERSE;
+	static int32_t mask, mask_ix = 0, table[] = {A_STANDOUT, A_REVERSE, A_UNDERLINE, A_BLINK, A_DIM, A_BOLD};
+
+	mask = table[mask_ix];
+	mask_ix++;
+	mask_ix = mask_ix % 6;
+	this->m_attr_mask |= mask;
 	this->redraw_partial(&context->pos, context->query.size());
-	this->m_attr_mask &= ~A_REVERSE;
+	this->m_attr_mask &= ~mask;
 	return 0;
 }
 
@@ -111,7 +123,7 @@ ctext_search *ctext::new_search(ctext_search *you_manage_this_memory, string to_
 
 int8_t ctext::highlight_matches(ctext_search *to_search)
 {
-	int8_t search_ret = 1;
+	int8_t search_ret;
 
 	if(!to_search)
 	{
@@ -137,14 +149,11 @@ int8_t ctext::highlight_matches(ctext_search *to_search)
 
 	// Now we iterate through the viewport highlighting all of the instances, using the 
 	// limit and the in_viewport pointer
-	while(search_ret >= 0)
+	do 
 	{
 		this->highlight(&in_viewport);
 		search_ret = this->str_search_single(&in_viewport, &in_viewport, &limit);
-	}
-
-	// Refresh our window and we're done with it.
-	wrefresh(this->m_win);
+	} while(search_ret >= 0);
 
 	return 0;
 }
@@ -179,11 +188,7 @@ int8_t ctext::str_search(ctext_search *to_search)
 	{
 		// We can do a general scroll_to and redraw.
 		this->redraw();
-
-		this->highlight_matches();
 	}
-	// Refresh our window and we're done with it.
-	wrefresh(this->m_win);
 
 	return 0;
 }
@@ -1260,6 +1265,7 @@ int8_t ctext::redraw()
 		line++;
 	}
 
+	this->highlight_matches();
 	wrefresh(this->m_win);
 	wattr_set(this->m_win, res_attrs, res_color_pair, 0);
 

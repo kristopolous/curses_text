@@ -388,6 +388,9 @@ class ctext
 
 		int8_t str_search(ctext_search *to_search);
 
+		// Turn off syntax highlighting from search.
+		int8_t search_off();
+
 	private:
 		int8_t map_to_win(int32_t buffer_x, int32_t buffer_y, ctext_pos *win);
 		int8_t y_scroll_calculate(int32_t amount, ctext_pos *pos);

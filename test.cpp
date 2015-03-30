@@ -118,13 +118,25 @@ if(0) {
   ct.ob_end();
 
 	ctext_search searcher;
-	ct.new_search(&searcher, "the");
+	ct.new_search(&searcher, "e");
 
+	x = 0;
 	do {
 		ret = ct.str_search(&searcher);
-		usleep(speed / 3);
-		ct.down();
-		usleep(speed);
+		usleep(speed * 5);
+
+		/*
+  	for(x = 0; x < 10; x++) {
+			ct.down();
+			usleep(speed * 5);
+			x++;
+			if(x == 5)
+			{
+				ct.search_off();
+			}
+		}
+		*/
+
 	} while (!ret);
 
   endwin();
