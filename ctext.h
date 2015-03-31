@@ -380,7 +380,12 @@ class ctext
 		int8_t ob_start();
 		int8_t ob_end();
 
-		int8_t highlight(ctext_search *context = 0);
+		//
+		// This highlights a search context given a mask.
+		// A few big mask optiosn are A_REVERSE, A_UNDERLINE, 
+		// A_BLINK, and A_BOLD. They can be binary ORed.
+		//
+		int8_t highlight(ctext_search *context = 0, int32_t mask = A_REVERSE);
 		int8_t redraw_partial_test();
 
 		// This is how you initialize a search.

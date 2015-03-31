@@ -118,7 +118,7 @@ if(0) {
   ct.ob_end();
 
 	ctext_search searcher;
-	ct.new_search(&searcher, "e");
+	ct.new_search(&searcher, "the");
 
 	x = 0;
 	do {

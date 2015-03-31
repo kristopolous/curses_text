@@ -87,13 +87,8 @@ int8_t ctext::attach_curses_window(WINDOW *win)
 	return this->redraw();
 }
 
-int8_t ctext::highlight(ctext_search *context)
+int8_t ctext::highlight(ctext_search *context, int32_t mask)
 {
-	static int32_t mask, mask_ix = 0, table[] = {A_STANDOUT, A_REVERSE, A_UNDERLINE, A_BLINK, A_DIM, A_BOLD};
-
-	mask = table[mask_ix];
-	mask_ix++;
-	mask_ix = mask_ix % 6;
 	this->m_attr_mask |= mask;
 	this->redraw_partial(&context->pos, context->query.size());
 	this->m_attr_mask &= ~mask;
@@ -124,6 +119,7 @@ ctext_search *ctext::new_search(ctext_search *you_manage_this_memory, string to_
 int8_t ctext::highlight_matches(ctext_search *to_search)
 {
 	int8_t search_ret;
+	int32_t mask = A_BOLD | A_UNDERLINE;
 
 	if(!to_search)
 	{
@@ -151,8 +147,9 @@ int8_t ctext::highlight_matches(ctext_search *to_search)
 	// limit and the in_viewport pointer
 	do 
 	{
-		this->highlight(&in_viewport);
+		this->highlight(&in_viewport, mask);
 		search_ret = this->str_search_single(&in_viewport, &in_viewport, &limit);
+		mask = A_REVERSE;
 	} while(search_ret >= 0);
 
 	return 0;
