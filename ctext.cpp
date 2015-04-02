@@ -95,7 +95,7 @@ int8_t ctext::highlight(ctext_search *context, int32_t mask)
 	return 0;
 }
 
-ctext_search *ctext::new_search(ctext_search *you_manage_this_memory, string to_search, bool is_forward, bool do_wrap)
+ctext_search *ctext::new_search(ctext_search *you_manage_this_memory, string to_search, bool is_case_insensitive, bool is_forward, bool do_wrap)
 {
 	ctext_search *p_search = you_manage_this_memory;
 
@@ -106,6 +106,7 @@ ctext_search *ctext::new_search(ctext_search *you_manage_this_memory, string to_
 
 	this->get_offset(&p_search->pos);
 
+	p_search->is_case_insensitive = is_case_insensitive;
 	p_search->do_wrap = do_wrap;
 	p_search->is_forward = is_forward;
 	p_search->query = to_search;
@@ -187,7 +188,7 @@ int8_t ctext::str_search(ctext_search *to_search)
 		this->redraw();
 	}
 
-	return 0;
+	return search_ret;
 }
 
 int8_t ctext::str_search_single(ctext_search *to_search_in, ctext_search *new_pos_out, ctext_pos *limit)
