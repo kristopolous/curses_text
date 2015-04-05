@@ -197,6 +197,7 @@ int8_t ctext::str_search_single(ctext_search *to_search_in, ctext_search *new_po
 	size_t found;
 	string haystack;
 	ctext_search res, *out;
+	string query = to_search_in->query; 
 
 	if(!to_search_in)
 	{
@@ -213,17 +214,26 @@ int8_t ctext::str_search_single(ctext_search *to_search_in, ctext_search *new_po
 		out = new_pos_out;
 	}
 
+	if(to_search_in->is_case_insensitive)
+	{
+		transform(query.begin(), query.end(), query.begin(), ::tolower);
+	} 
+
 	for(;;) 
 	{
 		haystack = this->m_buffer[out->pos.y].data;
+		if(to_search_in->is_case_insensitive)
+		{
+			transform(haystack.begin(), haystack.end(), haystack.begin(), ::tolower);
+		}
 
 		if(out->is_forward)
 		{
-			found = haystack.find(to_search_in->query, (size_t)( (out->pos.x == -2) ? out->pos.x + 2 : out->pos.x + 1));
+			found = haystack.find(query, (size_t)( (out->pos.x == -2) ? out->pos.x + 2 : out->pos.x + 1));
 		}
 		else
 		{
-			found = haystack.rfind(to_search_in->query, (size_t)( (out->pos.x == (int32_t)haystack.size()) ? out->pos.x : out->pos.x - 1));
+			found = haystack.rfind(query, (size_t)( (out->pos.x == (int32_t)haystack.size()) ? out->pos.x : out->pos.x - 1));
 		}
 
 		if(found == string::npos) 

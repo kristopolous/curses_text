@@ -118,7 +118,8 @@ if(0) {
   ct.ob_end();
 
 	ctext_search searcher;
-	ct.new_search(&searcher, "the");
+	ct.new_search(&searcher, "Un");
+	searcher.is_case_insensitive = true;
 
 	x = 0;
 	do {
