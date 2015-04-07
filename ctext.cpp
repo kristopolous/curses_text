@@ -173,7 +173,14 @@ int8_t ctext::str_search(ctext_search *to_search)
 			break;
 		}
 
-		scroll_ret = this->direct_scroll(&to_search->pos);
+		if(this->m_config.m_do_wrap) 
+		{
+			scroll_ret = this->direct_scroll(&to_search->pos);
+		} 
+		else
+		{
+			scroll_ret = this->direct_scroll(0, to_search->pos.y);
+		}
 		if(!scroll_ret)
 		{
 			break;

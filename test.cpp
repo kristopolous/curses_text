@@ -8,9 +8,10 @@
 #define page 4096
 int from_stdin(ctext*ct)
 {
+	int max = 500;
 	char buffer[page];
 	FILE *f = fopen("ulysses.txt", "r");
-	while(fgets(buffer, page, f)) {
+	while(max -- && fgets(buffer, page, f)) {
 		ct->printf("%s", buffer);
 	}
 	fclose(f);
@@ -33,7 +34,7 @@ int main(int argc, char **argv ){
   ctext_config config;
   pDebug = fopen("debug1.txt", "a");
 
-  local_win = newwin(9, 90, 5, 5);
+  local_win = newwin(9, 30, 5, 5);
   start_color();
 
   ctext ct(local_win);
@@ -43,7 +44,7 @@ int main(int argc, char **argv ){
 
   // add my handler
   config.m_bounding_box = true;
-  config.m_buffer_size = 300;
+  config.m_buffer_size = 700;
   //config.m_scroll_on_append = true;
   config.m_do_wrap = true;
 	config.m_auto_newline = false;
