@@ -10,7 +10,7 @@ int from_stdin(ctext*ct)
 {
 	int max = 500;
 	char buffer[page];
-	FILE *f = fopen("ulysses.txt", "r");
+	FILE *f = fopen("sample.txt", "r");
 	while(max -- && fgets(buffer, page, f)) {
 		ct->printf("%s", buffer);
 	}
@@ -21,7 +21,7 @@ int main(int argc, char **argv ){
   FILE *pDebug;
   int speed = 450000;
 	int8_t ret;
-  int16_t x = 0;
+  int16_t x = 0, ix = 0;
   int16_t y = 0;
   int amount = 0;
   float perc;
@@ -34,7 +34,7 @@ int main(int argc, char **argv ){
   ctext_config config;
   pDebug = fopen("debug1.txt", "a");
 
-  local_win = newwin(9, 30, 5, 5);
+  local_win = newwin(9, 70, 5, 5);
   start_color();
 
   ctext ct(local_win);
@@ -118,14 +118,33 @@ if(0) {
 
   ct.ob_end();
 
+	char query[] = "hexadecimal";
 	ctext_search searcher;
-	ct.new_search(&searcher, "Un");
+	ct.new_search(&searcher, "hex");
 	searcher.is_case_insensitive = true;
 
-	x = 0;
-	do {
+	for(ix = 9; ix > 3; ix --) {
+		ct.set_query(&searcher, string(query + ix));
 		ret = ct.str_search(&searcher);
-		usleep(speed * 5);
+		usleep(speed);
+	}
+
+
+	for(ix = 0; ix < 15; ix++) {
+	  ct.down();
+		usleep(speed);
+	}
+	for(ix = 0; ix < 15; ix++) {
+	  ct.up();
+		usleep(speed);
+	}
+	x = 0;
+//	do {
+		ret = ct.str_search(&searcher);
+		usleep(speed);
+		ct.up(5);
+		usleep(speed);
+//		usleep(speed * 5);
 
 		/*
   	for(x = 0; x < 10; x++) {
@@ -139,8 +158,9 @@ if(0) {
 		}
 		*/
 
-	} while (!ret);
+//	} while (!ret);
 
+usleep(5 * speed);
   endwin();
 		return(0);
 
