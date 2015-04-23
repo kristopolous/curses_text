@@ -46,7 +46,7 @@ int main(int argc, char **argv ){
   config.m_bounding_box = true;
   config.m_buffer_size = 700;
   //config.m_scroll_on_append = true;
-  config.m_do_wrap = true;
+  config.m_do_wrap = false;
 	config.m_auto_newline = false;
   //config.m_append_top = true;
   
@@ -118,9 +118,16 @@ if(0) {
 
   ct.ob_end();
 
+	ct.down(10);
+	ct.scroll_to(0,0);
+	usleep(speed * 10);
+
 	char query[] = "hexadecimal";
 	ctext_search searcher;
-	ct.new_search(&searcher, "hex");
+	ct.scroll_to(10,10);
+	ct.new_search(&searcher, "not-existent");
+	ct.str_search(&searcher);
+	ct.scroll_to(0,0);
 	searcher.is_case_insensitive = true;
 
 	for(ix = 9; ix > 3; ix --) {
