@@ -6,6 +6,10 @@
 #include "ctext.h"
 
 #define page 4096
+FILE *pDebug;
+WINDOW *local_win;
+int speed = 450000;
+
 int from_stdin(ctext*ct)
 {
 	int max = 500;
@@ -16,42 +20,13 @@ int from_stdin(ctext*ct)
 	}
 	fclose(f);
 }
-		
-int main(int argc, char **argv ){
-  FILE *pDebug;
-  int speed = 450000;
-	int8_t ret;
-  int16_t x = 0, ix = 0;
-  int16_t y = 0;
-  int amount = 0;
-  float perc;
-  locale::global(locale("en_US.utf8"));
 
-  initscr();  
-  cbreak();      
-  curs_set(0);
-  WINDOW *local_win;
-  ctext_config config;
-  pDebug = fopen("debug1.txt", "a");
+void color_test(ctext*ct)
+{
+  int16_t x = 0, y = 0;
+	int32_t loop = 0;
 
-  local_win = newwin(9, 70, 5, 5);
-  start_color();
-
-  ctext ct(local_win);
-
-  // get the default config
-  ct.get_config(&config);
-
-  // add my handler
-  config.m_bounding_box = true;
-  config.m_buffer_size = 700;
-  //config.m_scroll_on_append = true;
-  config.m_do_wrap = false;
-	config.m_auto_newline = false;
-  //config.m_append_top = true;
-  
-  // set the config back
-  ct.set_config(&config);
+	char testLen[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
   attr_t attrs; short color_pair_number;
   for(x = 0; x < 200; x++) 
@@ -75,13 +50,6 @@ i
     usleep(speed / 200);
 */
   }
-
-	int32_t loop = 0;
-  char buffer[32], *ptr;
-	char testLen[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-  int color = 0, round;
-  ct.ob_start();
-if(0) {
   for(y = 0; y < 250; y++) {
     //fprintf(pDebug, "%d\n", ct.available_rows());
     x = y % 50;
@@ -102,9 +70,9 @@ if(0) {
     wattr_on(local_win, COLOR_PAIR(x * 3 + 1), 0);
 
 		for(loop = 1; loop < 9; loop++) {
-			ct.printf("%d%c%d%c::", loop, loop + 'A', loop, loop + 'a');
+			ct->printf("%d%c%d%c::", loop, loop + 'A', loop, loop + 'a');
 		}
-		ct.printf("\n");
+		ct->printf("\n");
     wstandend(local_win);
     /*
     for(ptr = buffer; *ptr; ptr++) {
@@ -114,42 +82,28 @@ if(0) {
     */
   }
 }
-	from_stdin(&ct);
-
-  ct.ob_end();
-
-	ct.down(10);
-	ct.scroll_to(0,0);
-	usleep(speed * 10);
-
+		
+void search_test(ctext*ct) {
 	char query[] = "hexadecimal";
+  int16_t ix = 0;
+	int8_t ret;
+
 	ctext_search searcher;
-	ct.scroll_to(10,10);
-	ct.new_search(&searcher, "not-existent");
-	ct.str_search(&searcher);
-	ct.scroll_to(0,0);
+	ct->scroll_to(10,10);
+	ct->new_search(&searcher, "not-existent");
+	ct->str_search(&searcher);
+	ct->scroll_to(0,0);
 	searcher.is_case_insensitive = true;
 
 	for(ix = 9; ix > 3; ix --) {
-		ct.set_query(&searcher, string(query + ix));
-		ret = ct.str_search(&searcher);
+		ct->set_query(&searcher, string(query + ix));
+		ret = ct->str_search(&searcher);
 		usleep(speed);
 	}
-
-
-	for(ix = 0; ix < 15; ix++) {
-	  ct.down();
-		usleep(speed);
-	}
-	for(ix = 0; ix < 15; ix++) {
-	  ct.up();
-		usleep(speed);
-	}
-	x = 0;
 //	do {
-		ret = ct.str_search(&searcher);
+		ret = ct->str_search(&searcher);
 		usleep(speed);
-		ct.up(5);
+		ct->up(5);
 		usleep(speed);
 //		usleep(speed * 5);
 
@@ -166,6 +120,63 @@ if(0) {
 		*/
 
 //	} while (!ret);
+
+}
+
+int main(int argc, char **argv ){
+	int8_t ret;
+  int16_t ix = 0, y,x; 
+  int amount = 0;
+  float perc;
+  locale::global(locale("en_US.utf8"));
+
+  initscr();  
+  cbreak();      
+  curs_set(0);
+  ctext_config config;
+  pDebug = fopen("debug1.txt", "a");
+
+  local_win = newwin(9, 70, 5, 5);
+  start_color();
+
+  ctext ct(local_win);
+
+  // get the default config
+  ct.get_config(&config);
+
+  // add my handler
+  config.m_bounding_box = true;
+  config.m_buffer_size = 700;
+  //config.m_scroll_on_append = true;
+  config.m_do_wrap = false;
+	config.m_auto_newline = false;
+  //config.m_append_top = true;
+  
+  // set the config back
+  ct.set_config(&config);
+
+  char buffer[32], *ptr;
+  int color = 0, round;
+
+  ct.ob_start();
+	from_stdin(&ct);
+  ct.ob_end();
+
+	ct.down(10);
+	ct.scroll_to(0,0);
+	usleep(speed * 10);
+
+	//search_test(&ct);
+
+	for(ix = 0; ix < 15; ix++) {
+	  ct.down();
+		usleep(speed);
+	}
+	for(ix = 0; ix < 15; ix++) {
+	  ct.up();
+		usleep(speed);
+	}
+	x = 0;
 
 usleep(5 * speed);
   endwin();
