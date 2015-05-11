@@ -10,21 +10,24 @@ FILE *pDebug;
 WINDOW *local_win;
 int speed = 450000;
 
-int from_stdin(ctext*ct)
+void from_stdin(ctext*ct)
 {
-	int max = 500;
+	int max = 25;
 	char buffer[page];
 	FILE *f = fopen("sample.txt", "r");
+  ct->ob_start();
 	while(max -- && fgets(buffer, page, f)) {
 		ct->printf("%s", buffer);
 	}
 	fclose(f);
+  ct->ob_end();
 }
 
 void color_test(ctext*ct)
 {
   int16_t x = 0, y = 0;
-	int32_t loop = 0;
+	int32_t loop = 0, round, color;
+  char buffer[32], *ptr;
 
 	char testLen[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
@@ -50,7 +53,8 @@ i
     usleep(speed / 200);
 */
   }
-  for(y = 0; y < 250; y++) {
+  for(y = 0; y < 250; y++) 
+	{
     //fprintf(pDebug, "%d\n", ct.available_rows());
     x = y % 50;
     //ct.printf("%4d", y);
@@ -83,7 +87,8 @@ i
   }
 }
 		
-void search_test(ctext*ct) {
+void search_test(ctext*ct) 
+{
 	char query[] = "hexadecimal";
   int16_t ix = 0;
 	int8_t ret;
@@ -123,66 +128,64 @@ void search_test(ctext*ct) {
 
 }
 
-int main(int argc, char **argv ){
-	int8_t ret;
-  int16_t ix = 0, y,x; 
-  int amount = 0;
-  float perc;
+void init() 
+{
   locale::global(locale("en_US.utf8"));
-
   initscr();  
   cbreak();      
   curs_set(0);
-  ctext_config config;
-  pDebug = fopen("debug1.txt", "a");
-
-  local_win = newwin(9, 70, 5, 5);
   start_color();
+}
 
+void done() 
+{
+	usleep(5 * speed);
+  endwin();
+	_exit(0);
+}
+
+int main(int argc, char **argv )
+{
+	int8_t ret;
+  int16_t ix = 0;
+  int amount = 0;
+  float perc;
+  ctext_config config;
+
+	init();
+
+  pDebug = fopen("debug1.txt", "a");
+  local_win = newwin(9, 30, 5, 5);
   ctext ct(local_win);
 
-  // get the default config
   ct.get_config(&config);
 
-  // add my handler
   config.m_bounding_box = true;
-  config.m_buffer_size = 700;
+  config.m_buffer_size = 10;
   //config.m_scroll_on_append = true;
-  config.m_do_wrap = false;
+  config.m_do_wrap = true;
 	config.m_auto_newline = false;
   //config.m_append_top = true;
   
   // set the config back
   ct.set_config(&config);
 
-  char buffer[32], *ptr;
-  int color = 0, round;
-
-  ct.ob_start();
 	from_stdin(&ct);
-  ct.ob_end();
-
-	ct.down(10);
-	ct.scroll_to(0,0);
-	usleep(speed * 10);
-
-	//search_test(&ct);
 
 	for(ix = 0; ix < 15; ix++) {
 	  ct.down();
 		usleep(speed);
 	}
+	/*
 	for(ix = 0; ix < 15; ix++) {
 	  ct.up();
 		usleep(speed);
 	}
-	x = 0;
+	*/
 
-usleep(5 * speed);
-  endwin();
-		return(0);
+	done();
 
-  for(x = 0; x < 100; x++) {
+  for(ix = 0; ix < 100; ix++) {
     //ct.right();
     ct.down();
     usleep(speed / 5);
